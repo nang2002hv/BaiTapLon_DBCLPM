@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Nhập OTP</title>
+    <style>
+        body {
+            background: #e0e0e0;
+            /* Light gray background */
+            color: #333;
+            /* Dark gray font color */
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .otp-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Slightly transparent white background */
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            color: #333;
+            /* Dark gray font color */
+        }
+
+        .otp-container input {
+            width: 40px;
+            height: 40px;
+            margin: 0 5px;
+            padding: 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            background-color: #f2f2f2;
+            /* Light gray form background */
+            font-size: 20px;
+            text-align: center;
+            outline: none;
+            color: #333;
+            /* Dark gray font color */
+        }
+
+        .otp-container button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 16px;
+            border-radius: 3px;
+            border: none;
+            background-color: #4caf50;
+            /* Green button background */
+            color: white;
+            /* White font color */
+            cursor: pointer;
+        }
+
+        .error-message {
+            font-size: 14px;
+            color: red;
+        }
+
+        #countdown {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        a {
+            color: #333;
+            /* Dark gray link color */
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            /* Underline on hover */
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="otp-container">
+        <h2>Nhập OTP</h2>
+        <div>OTP đã được gửi về email: <span id="email"></span> </div>
+        <br>
+        <form id="otpForm" action="#">
+            <input type="text" id="otp1" name="otp1" pattern="\d" maxlength="1" required autofocus>
+            <input type="text" id="otp2" name="otp2" pattern="\d" maxlength="1" required>
+            <input type="text" id="otp3" name="otp3" pattern="\d" maxlength="1" required>
+            <input type="text" id="otp4" name="otp4" pattern="\d" maxlength="1" required>
+            <input type="text" id="otp5" name="otp5" pattern="\d" maxlength="1" required>
+            <input type="text" id="otp6" name="otp6" pattern="\d" maxlength="1" required>
+            <br>
+            <br>
+            <button id="submitBtn" type="submit">Xác thực</button>
+        </form>
+        <div id="countdown">Thời gian còn lại: <span id="timer">60</span></div>
+        <div id="otpError" class="error-message" style="display: none;">Xác thực OTP không thành công!</div>
+        <br>
+        <br>
+        <a id="loginLink" href="#">Quay lại trang đăng nhập</a>
+        <br>
+    </div>
+    <script>
+    
+        var urlParams = new URLSearchParams(window.location.search);
+        var email = urlParams.get('email');
+        document.getElementById('email').textContent = email;
+
+        var otp = localStorage.getItem('otp');
+        var customer = localStorage.getItem('customer');
+        console.log(email)
+        console.log(customer);
+        
+        fetch('http://localhost:8080/api/customer/send-otp?to=' + email + '&otp=' + otp)
+
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
+        var countdown = 60;
+        var timer = setInterval(function () {
+            countdown--;
+            document.getElementById('timer').textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(timer);
+                document.getElementById('timer').textContent = 'Hết thời gian';
+                document.querySelectorAll('.otp-container input').forEach(function (input) {
+                    input.disabled = true;
+                });
+                document.getElementById('submitBtn').disabled = true;
+                window.location.href = "dangky.html"; 
+            }
+        }, 1000);
+
+        
+        document.getElementById('otpForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var enteredOtp = '';
+            for (var i = 1; i <= 6; i++) {
+                enteredOtp += document.getElementById('otp' + i).value;
+            }
+
+            console.log(enteredOtp)
+
+            if (enteredOtp === otp) {
+                var customer = localStorage.getItem('customer');
+
+                fetch('http://localhost:8080/api/customer/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: customer,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Success:', data);
+                        localStorage.removeItem('customer');
+                        window.location.href = 'dangnhap.html';
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+            } else {
+                document.getElementById('otpError').style.display = 'block';
+            }
+        });
+        document.querySelectorAll('.otp-container input').forEach(function (input) {
+            input.addEventListener('input', function () {
+                var nextInput = this.nextElementSibling;
+                if (this.value.length === 1 && nextInput) {
+                    nextInput.focus();
+                }
+            });
+        });
+
+
+    </script>
+
+</body>
+
+</html>

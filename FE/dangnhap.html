@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="flash_icon.png" type="image/x-icon">
+    <title>Đăng nhập</title>
+    <style>
+        body {
+            background: #e0e0e0;
+            /* Light gray background */
+            color: #333;
+            /* Dark gray font color */
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Slightly transparent white background */
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .login-container input {
+            width: 50%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 3px;
+            border: none;
+            background-color: #f2f2f2;
+        }
+
+        .login-container button {
+            width: 50%;
+            padding: 10px;
+            margin-top: 16px;
+            border-radius: 3px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+            border-radius: 50%;
+            /* Make the container circular */
+            overflow: hidden;
+            /* Hide any content that overflows the container */
+            width: 150px;
+            /* Adjust width as needed */
+            height: 150px;
+            /* Adjust height as needed */
+            display: inline-block;
+            /* Allow the container to wrap around the image */
+        }
+
+        .logo {
+            width: 100%;
+            /* Make the image fill the container */
+            height: auto;
+            /* Maintain aspect ratio */
+        }
+
+        a {
+            color: #333;
+            /* Dark gray link color */
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            /* Underline on hover */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="logo-container">
+            <img class="logo" src="evnlogo.jpg" alt="Your Logo">
+        </div>
+        <h2>Đăng nhập</h2>
+        <form id ="login-form">
+            <input id="username" type="text" placeholder="Tên đăng nhập">
+            <input type="password" id="password" placeholder="Mật khẩu">
+            <button  type="submit">Đăng nhập</button>
+            <br>
+            <!-- Placeholder for success message -->
+            <p style="color: green;"></p>
+            <br>
+            <a href="dangky.html">Đăng ký tài khoản mới</a>
+            <p style="color:red;"></p>
+            <br>
+            <a href="quenmatkhau.html">Quên mật khẩu</a>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('login-form');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch(`http://localhost:8080/api/user/login?username=${username}&password=${password}`);
+
+            if (response.status === 200) {
+                const user = await response.json();
+                localStorage.setItem('employee', JSON.stringify(user));
+                window.location.href = "/update.html";
+            } else {
+                alert("Đăng nhập thất bại!");
+            }
+        });
+
+    </script>
+</body>
+
+</html>

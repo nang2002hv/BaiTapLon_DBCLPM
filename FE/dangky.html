@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký</title>
+    <style>
+        body {
+            background: #e0e0e0;
+            /* Light gray background */
+            color: #333;
+            /* Dark gray font color */
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .register-container {
+            background-color: rgba(255, 255, 255, 0.9);
+            /* Slightly transparent white background */
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .register-container input {
+            width: 50%;
+            margin-bottom: 12px;
+            padding: 10px;
+            border-radius: 3px;
+            border: none;
+            background-color: #f2f2f2;
+        }
+
+        .register-container button {
+            width: 50%;
+            padding: 10px;
+            margin-top: 16px;
+            border-radius: 3px;
+            border: none;
+            background-color: #4caf50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+            border-radius: 50%;
+            /* Make the container circular */
+            overflow: hidden;
+            /* Hide any content that overflows the container */
+            width: 150px;
+            /* Adjust width as needed */
+            height: 150px;
+            /* Adjust height as needed */
+            display: inline-block;
+            /* Allow the container to wrap around the image */
+        }
+
+        .logo {
+            width: 100%;
+            /* Make the image fill the container */
+            height: auto;
+            /* Maintain aspect ratio */
+        }
+
+        a {
+            color: #333;
+            /* Dark gray link color */
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            /* Underline on hover */
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="register-container">
+        <div class="logo-container">
+            <img class="logo" src="evnlogo.jpg" alt="Your Logo">
+        </div>
+        <h2>Đăng ký tài khoản</h2>
+        <form id="registrationForm">
+            <input id="phoneNumber" type="number" placeholder="Số điện thoại" required>
+            <div id="phoneNumberError" class="error-message"></div>
+            <br>
+            <input id="email" type="email" placeholder="Email" required>
+            <div id="emailError" class="error-message"></div>
+            <br>
+            <input id="username" type="text" placeholder="Username" required>
+            <div id="usernameError" class="error-message"></div>
+            <br>
+            <input id="fullName" type="text" placeholder="Họ tên" required>
+            <br>
+            <input id="citizenId" type="number" placeholder="Số CCCD/CMND" required>
+            <br>
+            <input id="password" type="password" placeholder="Mật khẩu" required>
+            <input id="confirmPassword" type="password" placeholder="Nhập lại mật khẩu" required>
+            <p style="font-style: italic; font-size: 16px;">Chú ý: Mật khẩu tối thiểu 10 ký tự trong đó bao gồm <br>chữ
+                hoa, chữ thường,
+                ký tự số, ký tự đặc biệt</p>
+            <div class="error-message"></div>
+            <div id="otp" class="error-message"></div>
+            <div id="errorInput" class="error-message"></div>
+            <button id="registerButton" type="submit">Đăng ký</button>
+            <br>
+            <br>
+            <a href="#">Quay lại trang đăng nhập</a>
+            <br>
+        </form>
+    </div>
+    <script>
+        document.getElementById('registerButton').addEventListener('click', function (event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+            // Get the form fields
+            var phoneNumber = document.getElementById('phoneNumber').value;
+            var email = document.getElementById('email').value;
+            var username = document.getElementById('username').value;
+            var fullName = document.getElementById('fullName').value;
+            var citizenId = document.getElementById('citizenId').value;
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirmPassword').value;
+            var errorDiv = document.getElementById('errorInput');
+            // Reset previous error messages
+            errorDiv.innerHTML = '';
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Mật khẩu không khớp. Vui lòng nhập lại.';
+                return;
+            }
+            // Check password strength
+            var passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{10,}$/;
+            if (!passwordRegex.test(password)) {
+                errorDiv.style.display = 'block';
+                errorDiv.innerHTML = 'Mật khẩu phải chứa ít nhất 10 ký tự,<br>bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.';
+                return;
+            }
+            // Create the user object
+            var customer = {
+                "fullName": fullName,
+                "phoneNumber": phoneNumber,
+                "email": email,
+                "password": password,
+                "authorization": "customer",
+                "username": username,
+                "citizenId": citizenId,
+            };
+            console.log(JSON.stringify(customer));
+            localStorage.setItem('customer', customer);
+            // Send a POST request to the API
+            fetch('http://localhost:8080/api/customer/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(customer),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data === 'EMAIL') {
+                        document.getElementById('errorEmail').textContent = 'Email đã tồn tại';
+                    } else if (data === 'PHONENUMBER') {
+                        document.getElementById('errorPhoneNumber').textContent = 'Số điện thoại đã tồn tại';
+                    } else if (data === 'USERNAME') {
+                        document.getElementById('errorUsername').textContent = 'Username đã tồn tại';
+                    } else {
+                        localStorage.setItem('customer', JSON.stringify(customer));
+                        localStorage.setItem('otp', data);
+                        window.location.href = 'otp.html?email=' + email;
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+
+</html>
