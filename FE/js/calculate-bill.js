@@ -8,13 +8,13 @@ var listArea = [];
 var listBill = [];
 var hasWhiteDataColor = false;
 var districtDataLoaded = false;
-// $('.confirm-and-save').prop('disabled', true);
-// $('.calculate').prop('disabled', true);
+$('.confirm-and-save').prop('disabled', true);
+$('.calculate').prop('disabled', true);
 
 setInterval(function () {
   table.rows().every(function () {
     var dataColor = $(this.node()).attr('data-color');
-    if (dataColor === 'white') {
+    if (dataColor === 'white' || dataColor === 'red') {
       hasWhiteDataColor = true;
       return false;
     }
@@ -23,6 +23,10 @@ setInterval(function () {
   if (hasWhiteDataColor) {
     $('.confirm-and-save').prop('disabled', false);
     $('.calculate').prop('disabled', false);
+  }
+  else {
+    $('.confirm-and-save').prop('disabled', true);
+    $('.calculate').prop('disabled', true);
   }
 }, 500);
 
@@ -93,13 +97,13 @@ document.querySelector('.city').addEventListener('click', function () {
   });
   var wardCommune = document.querySelector('.ward-commune');
   var district = document.querySelector('.district');
-  district.innerHTML =""
+  district.innerHTML = ""
   var option2 = document.createElement('option');
   option2.text = "Vui lòng chọn huyện";
   option2.selected = true;
   option2.disabled = true;
   district.append(option2)
-  wardCommune.innerHTML =""
+  wardCommune.innerHTML = ""
   var option1 = document.createElement('option');
   option1.text = "Vui lòng chọn xã";
   option1.disabled = true;
@@ -131,7 +135,7 @@ document.querySelector('.district').addEventListener('click', function () {
     districtDataLoaded = true;
   }
   var wardCommune = document.querySelector('.ward-commune');
-  wardCommune.innerHTML =""
+  wardCommune.innerHTML = ""
   var option1 = document.createElement('option');
   option1.text = "Vui lòng chọn xã";
   option1.disabled = true;
@@ -181,6 +185,7 @@ function getListwardCommuneByNameDistrict(nameDistrict) {
 
 document.querySelector('.filter-by-area').addEventListener('click', function () {
   table.clear().draw();
+  listBill = [];
   var wardCommune = document.querySelector('.ward-commune').value;
   var district = document.querySelector('.district').value;
   var city = document.querySelector('.city').value;
@@ -188,8 +193,6 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
   var selectedArea = listArea.find(area => area.wardCommune === wardCommune && area.district === district && area.city === city);
 
   if (selectedArea) {
-    listBill = [];
-    
 
     fetch('http://localhost:8080/api/meters/filter', {
       method: 'POST',
@@ -219,21 +222,20 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
               if (data.reading.status === 'WAITING_FOR_CALCULATION') {
                 listBill.push(data);
               }
-              var amountBeforeTax = data.amountBeforeTax <= 0 ? '' : data.amountBeforeTax;
-              var amountTax = data.amountTax <= 0 ? '' : data.amountTax;
-              var amountAfterTax = data.amountAfterTax <= 0 ? '' : data.amountAfterTax;
+              var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
+              var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
+              var amountAfterTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountAfterTax;
 
               var rowNode = table.row.add([
                 data.reading.meter.meterCode,
                 data.reading.meter.customer.fullName,
                 data.reading.meter.meterType,
                 data.reading.previousReading,
-                //'<input type="text" id="input-' + data.id + '" value="' + data.reading.currentReading + '">',
                 data.reading.currentReading,
                 amountBeforeTax,
                 amountTax,
                 amountAfterTax
-            ]).draw().node();
+              ]).draw().node();
 
               $(rowNode).attr('id', 'id-' + data.id);
 
@@ -287,7 +289,6 @@ function sortRow() {
 
 
 document.querySelector('.calculate').addEventListener('click', function () {
-  console.log(listBill.length)
   Promise.all(
     listBill.map((bill, index) => {
       return fetch('http://localhost:8080/api/bills/calculate', {
@@ -319,7 +320,8 @@ document.querySelector('.calculate').addEventListener('click', function () {
             amountTax,
             amountAfterTax
           ]).draw();
-  
+          $('#id-' + data.id).css('background-color', 'white');
+          $('#id-' + data.id).attr('data-color', 'white');
           listBill[index] = data;
         })
         .catch(error => {
@@ -330,7 +332,7 @@ document.querySelector('.calculate').addEventListener('click', function () {
         });
     })
   ).then(() => {
-    hasWhiteDataColor = false;
+    // hasWhiteDataColor = false;
     sortRow();
   });
 });
@@ -344,6 +346,8 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
     data.forEach(cell => {
       if (cell === '') {
         $(this.node()).css('background-color', 'red');
+        $(this.node()).attr('data-color', 'red');
+
         hasEmptyField = true;
       }
     });
@@ -366,7 +370,6 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
             table.clear().draw();
             listBill = [];
             hasWhiteDataColor = false;
-           
           }
         })
 
@@ -376,7 +379,10 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
     });
     alert('Lưu thành công');
   }
-  
+  else {
+    alert('Vui lòng tính toán hóa đơn trước khi lưu')
+  }
+
 });
 
 
