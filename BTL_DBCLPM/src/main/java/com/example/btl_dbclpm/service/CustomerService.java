@@ -2,6 +2,7 @@ package com.example.btl_dbclpm.service;
 
 import com.example.btl_dbclpm.model.Customer;
 import com.example.btl_dbclpm.repository.CustomerRepository;
+import com.example.btl_dbclpm.repository.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,19 +19,22 @@ import java.util.concurrent.ScheduledExecutorService;
 public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private JavaMailSender emailSender;
 
     private ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     public String registerUser(Customer customer) {
-        if (customerRepository.existsByEmail(customer.getEmail())) {
+        System.out.println(customer.getUsername());
+        if (userRepository.existsByEmail(customer.getEmail())) {
             return "EMAIL";
         }
-        if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
+        if (userRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
             return "PHONE_NUMBER";
         }
-        if (customerRepository.existsByUsername(customer.getUsername())) {
+        if (userRepository.existsByUsername(customer.getUsername())) {
             return "USERNAME";
         }
         String otp = generateOTP();
