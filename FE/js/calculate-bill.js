@@ -7,6 +7,7 @@ var table = $('#dataTable').DataTable();
 var listArea = [];
 var listBill = [];
 var hasWhiteDataColor = false;
+var districtDataLoaded = false;
 // $('.confirm-and-save').prop('disabled', true);
 // $('.calculate').prop('disabled', true);
 
@@ -27,8 +28,7 @@ setInterval(function () {
 
 document.addEventListener('DOMContentLoaded', function () {
   var employee = localStorage.getItem('employee'); // Lấy dữ liệu từ localStorage
-  listArea = [];
-
+  listMeter = [];
   fetch('http://localhost:8080/api/areas/filter', {
     method: 'POST',
     headers: {
@@ -43,32 +43,141 @@ document.addEventListener('DOMContentLoaded', function () {
       var wardCommune = document.querySelector('.ward-commune');
       var district = document.querySelector('.district');
       var city = document.querySelector('.city');
+      var addedPlaceholderWardCommune = false;
+      var addedPlaceholderDistrict = false;
+      var addedPlaceholderCity = false;
 
       data.forEach(item => {
-        if (!Array.from(wardCommune.options).some(option => option.text === item.wardCommune)) {
+        if (!addedPlaceholderWardCommune && !Array.from(wardCommune.options).some(option => option.text === item.wardCommune)) {
           var option1 = document.createElement('option');
-          option1.value = item.wardCommune;
-          option1.text = item.wardCommune;
+          option1.text = "Vui lòng chọn xã";
+          option1.disabled = true;
+          option1.selected = true;
           wardCommune.appendChild(option1);
+          addedPlaceholderWardCommune = true;
+
         }
 
-        if (!Array.from(district.options).some(option => option.text === item.district)) {
+        if (!addedPlaceholderDistrict && !Array.from(district.options).some(option => option.text === item.district)) {
           var option2 = document.createElement('option');
-          option2.value = item.district;
-          option2.text = item.district;
+          option2.text = "Vui lòng chọn huyện";
+          option2.selected = true;
+          option2.disabled = true;
           district.appendChild(option2);
+          addedPlaceholderDistrict = true;
         }
 
-        if (!Array.from(city.options).some(option => option.text === item.city)) {
+        if (!addedPlaceholderCity && !Array.from(city.options).some(option => option.text === item.city)) {
           var option3 = document.createElement('option');
-          option3.value = item.city;
-          option3.text = item.city;
+          option3.text = "Vui lòng chọn thành phố";
           city.appendChild(option3);
+          addedPlaceholderCity = true;
         }
       });
     })
     .catch(error => console.error('Error:', error));
 });
+
+document.querySelector('.city').addEventListener('click', function () {
+  var nameCity = document.querySelector(".city");
+  nameCity.innerHTML = "";
+  var addedCities = [];
+  listArea.forEach(function (item) {
+    if (!addedCities.includes(item.city)) {
+      var option = document.createElement("option");
+      option.text = item.city;
+      option.value = item.city;
+      nameCity.add(option);
+      addedCities.push(item.city);
+    }
+  });
+  var wardCommune = document.querySelector('.ward-commune');
+  var district = document.querySelector('.district');
+  district.innerHTML =""
+  var option2 = document.createElement('option');
+  option2.text = "Vui lòng chọn huyện";
+  option2.selected = true;
+  option2.disabled = true;
+  district.append(option2)
+  wardCommune.innerHTML =""
+  var option1 = document.createElement('option');
+  option1.text = "Vui lòng chọn xã";
+  option1.disabled = true;
+  option1.selected = true;
+  wardCommune.appendChild(option1);
+  districtDataLoaded = false;
+});
+
+
+
+document.querySelector('.district').addEventListener('click', function () {
+  var nameCitys = document.querySelector(".city").value;
+  console.log(nameCitys)
+  var districtList = getListDistrictByNameCity(nameCitys);
+  var districtSelect = document.querySelector('.district');
+
+  // Kiểm tra xem dữ liệu đã được tải hay chưa
+  if (!districtDataLoaded && nameCitys !== "Vui lòng chọn thành phố") {
+    districtSelect.disabled = false;
+    districtSelect.innerHTML = "";
+    districtList.forEach(function (district) {
+      var option = document.createElement("option");
+      option.text = district;
+      option.value = district;
+      districtSelect.add(option);
+    });
+
+    // Đánh dấu rằng dữ liệu đã được tải
+    districtDataLoaded = true;
+  }
+  var wardCommune = document.querySelector('.ward-commune');
+  wardCommune.innerHTML =""
+  var option1 = document.createElement('option');
+  option1.text = "Vui lòng chọn xã";
+  option1.disabled = true;
+  option1.selected = true;
+  wardCommune.appendChild(option1);
+});
+
+document.querySelector('.ward-commune').addEventListener('click', function () {
+
+  var nameDistricts = document.querySelector(".district").value;
+  var wardCommunetList = getListwardCommuneByNameDistrict(nameDistricts);
+  var wardCommunetSelect = document.querySelector('.ward-commune');
+
+  if (nameDistricts != "Vui lòng chọn huyện") {
+    wardCommunetSelect.disabled = false;
+    wardCommunetSelect.innerHTML = "";
+    wardCommunetList.forEach(function (wardCommune) {
+      var option = document.createElement("option");
+      option.text = wardCommune;
+      option.value = wardCommune;
+      wardCommunetSelect.add(option);
+    });
+  }
+});
+
+
+
+function getListDistrictByNameCity(nameCity) {
+  var listDistrict = [];
+  for (var i = 0; i < listArea.length; i++) {
+    if (listArea[i].city === nameCity) {
+      listDistrict.push(listArea[i].district);
+    }
+  }
+  return listDistrict;
+}
+
+function getListwardCommuneByNameDistrict(nameDistrict) {
+  var listWardCommuneList = [];
+  for (var i = 0; i < listArea.length; i++) {
+    if (listArea[i].district === nameDistrict) {
+      listWardCommuneList.push(listArea[i].wardCommune);
+    }
+  }
+  return listWardCommuneList;
+}
 
 document.querySelector('.filter-by-area').addEventListener('click', function () {
   table.clear().draw();

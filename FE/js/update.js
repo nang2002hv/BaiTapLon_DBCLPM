@@ -5,9 +5,11 @@ $(document).ready(function () {
 
 var table = $('#dataTable').DataTable();
 var listArea = [];
+var listMeterReadingAll =[];
 var listMeterReading = [];
 var hasWhiteDataColor = false;
-var i = 0;
+var districtDataLoaded = false;
+
 // $('.confirm-and-save').prop('disabled', true);
 // $('.calculate').prop('disabled', true);
 
@@ -43,37 +45,147 @@ document.addEventListener('DOMContentLoaded', function () {
       var wardCommune = document.querySelector('.ward-commune');
       var district = document.querySelector('.district');
       var city = document.querySelector('.city');
+      var addedPlaceholderWardCommune = false;
+      var addedPlaceholderDistrict = false;
+      var addedPlaceholderCity = false;
 
       data.forEach(item => {
-        if (!Array.from(wardCommune.options).some(option => option.text === item.wardCommune)) {
+        if (!addedPlaceholderWardCommune && !Array.from(wardCommune.options).some(option => option.text === item.wardCommune)) {
           var option1 = document.createElement('option');
-          option1.value = item.wardCommune;
-          option1.text = item.wardCommune;
+          option1.text = "Vui lòng chọn xã";
+          option1.disabled = true;
+          option1.selected = true;
           wardCommune.appendChild(option1);
+          addedPlaceholderWardCommune = true;
+
         }
 
-        if (!Array.from(district.options).some(option => option.text === item.district)) {
+        if (!addedPlaceholderDistrict && !Array.from(district.options).some(option => option.text === item.district)) {
           var option2 = document.createElement('option');
-          option2.value = item.district;
-          option2.text = item.district;
+          option2.text = "Vui lòng chọn huyện";
+          option2.selected = true;
+          option2.disabled = true;
           district.appendChild(option2);
+          addedPlaceholderDistrict = true;
         }
 
-        if (!Array.from(city.options).some(option => option.text === item.city)) {
+        if (!addedPlaceholderCity && !Array.from(city.options).some(option => option.text === item.city)) {
           var option3 = document.createElement('option');
-          option3.value = item.city;
-          option3.text = item.city;
+          option3.text = "Vui lòng chọn thành phố";
           city.appendChild(option3);
+          addedPlaceholderCity = true;
         }
       });
     })
     .catch(error => console.error('Error:', error));
 });
 
+document.querySelector('.city').addEventListener('click', function () {
+  var nameCity = document.querySelector(".city");
+  nameCity.innerHTML = "";
+  var addedCities = [];
+  listArea.forEach(function (item) {
+    if (!addedCities.includes(item.city)) {
+      var option = document.createElement("option");
+      option.text = item.city;
+      option.value = item.city;
+      nameCity.add(option);
+      addedCities.push(item.city);
+    }
+  });
+  var wardCommune = document.querySelector('.ward-commune');
+  var district = document.querySelector('.district');
+  district.innerHTML =""
+  var option2 = document.createElement('option');
+  option2.text = "Vui lòng chọn huyện";
+  option2.selected = true;
+  option2.disabled = true;
+  district.append(option2)
+  wardCommune.innerHTML =""
+  var option1 = document.createElement('option');
+  option1.text = "Vui lòng chọn xã";
+  option1.disabled = true;
+  option1.selected = true;
+  wardCommune.appendChild(option1);
+  districtDataLoaded = false;
+});
+
+
+
+document.querySelector('.district').addEventListener('click', function () {
+  var nameCitys = document.querySelector(".city").value;
+  console.log(nameCitys)
+  var districtList = getListDistrictByNameCity(nameCitys);
+  var districtSelect = document.querySelector('.district');
+
+  // Kiểm tra xem dữ liệu đã được tải hay chưa
+  if (!districtDataLoaded && nameCitys !== "Vui lòng chọn thành phố") {
+    districtSelect.disabled = false;
+    districtSelect.innerHTML = "";
+    districtList.forEach(function (district) {
+      var option = document.createElement("option");
+      option.text = district;
+      option.value = district;
+      districtSelect.add(option);
+    });
+
+    // Đánh dấu rằng dữ liệu đã được tải
+    districtDataLoaded = true;
+  }
+  var wardCommune = document.querySelector('.ward-commune');
+  wardCommune.innerHTML =""
+  var option1 = document.createElement('option');
+  option1.text = "Vui lòng chọn xã";
+  option1.disabled = true;
+  option1.selected = true;
+  wardCommune.appendChild(option1);
+});
+
+document.querySelector('.ward-commune').addEventListener('click', function () {
+
+  var nameDistricts = document.querySelector(".district").value;
+  var wardCommunetList = getListwardCommuneByNameDistrict(nameDistricts);
+  var wardCommunetSelect = document.querySelector('.ward-commune');
+
+  if (nameDistricts != "Vui lòng chọn huyện") {
+    wardCommunetSelect.disabled = false;
+    wardCommunetSelect.innerHTML = "";
+    wardCommunetList.forEach(function (wardCommune) {
+      var option = document.createElement("option");
+      option.text = wardCommune;
+      option.value = wardCommune;
+      wardCommunetSelect.add(option);
+    });
+  }
+});
+
+
+
+function getListDistrictByNameCity(nameCity) {
+  var listDistrict = [];
+  for (var i = 0; i < listArea.length; i++) {
+    if (listArea[i].city === nameCity) {
+      listDistrict.push(listArea[i].district);
+    }
+  }
+  return listDistrict;
+}
+
+function getListwardCommuneByNameDistrict(nameDistrict) {
+  var listWardCommuneList = [];
+  for (var i = 0; i < listArea.length; i++) {
+    if (listArea[i].district === nameDistrict) {
+      listWardCommuneList.push(listArea[i].wardCommune);
+    }
+  }
+  return listWardCommuneList;
+}
+
+
+
 document.querySelector('.filter-by-area').addEventListener('click', function () {
   table.clear().draw(); // Xóa dữ liệu cũ trên bảng
   listMeter = []; // Xóa danh sách hóa đơn cũ
-  i = 0;
   // Lấy giá trị của các trường input
   var wardCommune = document.querySelector('.ward-commune').value;
   var district = document.querySelector('.district').value;
@@ -95,16 +207,18 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
         return response.json();
       })
       .then(data => {
+        
         data.forEach(item => {
+          listMeterReadingAll.push(item)
           if (item.status === 'WAITING_FOR_INPUT') {
             listMeterReading.push(item);
           }
           var currentReadingValue = item.currentReading;
-          var inputField = '<input type="text" id="input-' + i + '" value="' + currentReadingValue + '" disabled>';
-          console.log(currentReadingValue)
+          var inputField = '<input type="text" id="input-' + item.meter.id + '" value="' + currentReadingValue + '" disabled>';
+        
           if (item.currentReading === 0) {
             // Nếu currentReading bằng 0, disable input và không set giá trị
-            inputField = '<input type="text" id="input-' + i + '">';
+            inputField = '<input type="text" id="input-' + item.meter.id + '">';
           }
           var rowNode = table.row.add([
             item.meter.meterCode,
@@ -113,10 +227,10 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
             item.previousReading, // Lấy giá trị đọc trước đó hoặc hiển thị 'N/A' nếu không tồn tại
             // currentReading, // Lấy giá trị đọc hiện tại hoặc hiển thị 'N/A' nếu không tồn tại
             inputField,
-
+            '<button id="btn-' + item.meter.id + '" class="btn btn-primary d-block mx-auto mb-4" onclick="update(\'' + item.meter.id + '\')">Cập nhật</button>'
+            
           ]).draw().node();
-          $(rowNode).attr('id', 'id-' + i);
-          i = i + 1;
+          $(rowNode).attr('id', 'id-' + item.meter.id);
         });
 
       })
@@ -127,6 +241,29 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
   }
 });
 
+function update(rowId){
+  var table = $('#dataTable').DataTable();
+  var rowData = table.row('#id-' + rowId).data();
+  var meterCode = rowData[0];
+  var inputElement = document.getElementById('input-' + rowId);
+  
+  inputElement.removeAttribute('disabled');
+  var itemIndex = listMeterReading.findIndex(item => item.meter.meterCode === meterCode);
+  if (itemIndex === -1) {
+    // Nếu không tìm thấy, thêm phần tử mới vào listMeterReading
+    var newItem = listMeterReadingAll.find(item => item.meter.meterCode === meterCode);
+    if (newItem) {
+      listMeterReading.push(newItem);
+      console.log('New item added to listMeterReading:', newItem);
+    } else {
+      console.log('Meter code not found in listMeterReadingAll:', meterCode);
+    }
+  } else {
+    console.log('Item found in listMeterReading:', listMeterReading[itemIndex]);
+  }
+  inputElement.value = '';
+  console.log(listMeterReading)
+}
 
 
 
@@ -151,49 +288,6 @@ function sortRow() {
   });
 }
 
-
-// document.querySelector('.calculate').addEventListener('click', function () {
-//   Promise.all(
-//     listBill.map((bill, index) => {
-//       return fetch('http://localhost:8080/api/bills/calculate', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(bill)
-//       })
-//         .then(response => {
-//           if (response.ok) {
-//             return response.json();
-//           } else {
-//             throw new Error('Bad request');
-//           }
-//         })
-//         .then(data => {
-//           table.row('#id-' + data.id).data([
-//             data.reading.meter.meterCode,
-//             data.reading.meter.customer.fullName,
-//             data.reading.meter.meterType,
-//             data.reading.previousReading,
-//             data.reading.currentReading,
-
-//           ]).draw();
-
-//           listBill[index] = data;
-//         })
-//         .catch(error => {
-//           console.log(error)
-//           // Cập nhật màu nền của hàng trong DataTables
-//           var rowNode = table.row('#id-' + bill.id).node();
-//           $(rowNode).css('background-color', 'red');
-//         });
-//     })
-//   ).then(() => {
-//     hasWhiteDataColor = false;
-//     sortRow();
-//   });
-// });
-
 document.querySelector('.confirm-and-save').addEventListener('click', function () {
   var table = $('#dataTable').DataTable();
   var hasEmptyField = false;
@@ -204,6 +298,7 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
     rowCells.each(function () {
       var cellValue = $(this).val();
       if (cellValue === '') {
+        alert("Không được bỏ trống ô nhập số điện")
         $(row.node()).css('background-color', 'red');
         hasEmptyField = true;
       } else if (!isValidInput(cellValue)) {
@@ -215,17 +310,16 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
   });
 
   if (!hasEmptyField) {
-
+    console.log(listMeterReading)
     listMeterReading.map((meterreading, index) => {
+      
       // Lấy giá trị từ input dựa trên id
-      var inputId = 'input-' + index; // itemId là id của input
+      var inputId = 'input-' + meterreading.meter.id; // itemId là id của input
       console.log(inputId)
       var inputValue = document.getElementById(inputId).value;
-
+      console.log(inputValue)
       // Gán giá trị vào biến
       meterreading.currentReading = inputValue;
-      console.log(meterreading.currentReading)
-      console.log(JSON.stringify(meterreading))
       return fetch('http://localhost:8080/api/metterreading/save', {
         method: 'POST',
         headers: {
@@ -242,20 +336,20 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
         })
         .then(data => {
           var currentReadingValue = data.currentReading;
-          var inputField = '<input type="text" id="input-' + index + '" value="' + currentReadingValue + '" disabled>';
+          var inputField = '<input type="text" id="input-' + meterreading.meter.id + '" value="' + currentReadingValue + '" disabled>';
 
           if (data.currentReading === 0) {
             // Nếu currentReading bằng 0, disable input và không set giá trị
-            inputField = '<input type="text" id="input-' + index + '">';
+            inputField = '<input type="text" id="input-' + meterreading.meter.id + '">';
           }
-          table.row('#id-' + index).data([
+          table.row('#id-' + meterreading.meter.id).data([
             data.meter.meterCode,
             data.meter.customer.fullName,
             data.meter.meterType,
             data.previousReading, // Lấy giá trị đọc trước đó hoặc hiển thị 'N/A' nếu không tồn tại
             // currentReading, // Lấy giá trị đọc hiện tại hoặc hiển thị 'N/A' nếu không tồn tại
             inputField,
-
+            '<button id="btn-' + meterreading.meter.id + '" class="btn btn-primary d-block mx-auto mb-4" onclick="update(\'' + meterreading.meter.id + '\')">Cập nhật</button>'
           ]).draw();
 
           listMeterReading[index] = data;
@@ -264,7 +358,7 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
         .catch(error => {
           console.log(error)
           // Cập nhật màu nền của hàng trong DataTables
-          var rowNode = table.row('#id-' + index).node();
+          var rowNode = table.row('#id-' + meterreading.meter.id).node();
           $(rowNode).css('background-color', 'red');
         });
     })
@@ -278,14 +372,17 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
 function isValidInput(value) {
   // Kiểm tra xem giá trị có phải là số không âm không
   if (!/^\d+(\.\d+)?$/.test(value)) {
+    alert("Không được nhập kí tự đặc biết")
     return false;
   }
   // Kiểm tra xem giá trị có phải là số không âm không
   if (parseFloat(value) < 0) {
+    alert("Không được nhập số âm")
     return false;
   }
   // Kiểm tra xem giá trị có chứa ký tự đặc biệt không
   if (/[^a-zA-Z0-9]/.test(value)) {
+    alert("Không nhập chữ cái")
     return false;
   }
   return true;

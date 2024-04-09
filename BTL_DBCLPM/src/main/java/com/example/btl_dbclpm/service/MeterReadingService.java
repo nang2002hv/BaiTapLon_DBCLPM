@@ -28,6 +28,7 @@ public class MeterReadingService {
     private final BillRepository billRepository;
     public MeterReading updateMeterReading(MeterReading meterReading){
         if(checkValidate(meterReading)){
+            long id = meterReading.getId();
             Date currentDate = new Date();
             java.sql.Date sqlDate = new java.sql.Date(currentDate.getTime());
             SimpleDateFormat formatter1 = new SimpleDateFormat("yyyy-MM-dd");
@@ -41,7 +42,10 @@ public class MeterReadingService {
             meterRepositiory.save(meter);
             Bill bill = new Bill();
             bill.setReading(meterReading1);
-            billRepository.save(bill);
+            System.out.println(meterReading.getId());
+            if(id == 0){
+                billRepository.save(bill);
+            }
             return meterReading1;
         }
         return null;
@@ -69,9 +73,6 @@ public class MeterReadingService {
             String[] timeString = formatter1.format(time).split("-");
             MeterReading meterReading = new MeterReading(); // luu meterRading cuoi cung, neu khong co meterreading thi tao moi 1 cai
 
-            for(int j = 0; j <= 2; j++){
-                System.out.println(timeString[j] +"||" + mysqlFormattedDate[j]);
-            }
             if(meterList.get(i).getMeterReadings().size() > 0){
 
                 //so sánh ngày update
