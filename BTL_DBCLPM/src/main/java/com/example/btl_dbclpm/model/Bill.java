@@ -23,7 +23,7 @@ public class Bill {
     private long amountTax = -1;
     private long total = -1;
     private long amountBeforeTax = -1;
-    private double taxRate =0.08;
+    private final double taxRate = 0.08;
     private long amountAfterTax = -1;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "payment_id")

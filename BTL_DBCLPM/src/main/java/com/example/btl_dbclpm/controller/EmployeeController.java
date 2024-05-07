@@ -8,14 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-@Controller
 @RestController
-@RequestMapping("api/employese")
+@RequestMapping("api/employee")
 @CrossOrigin
 @RequiredArgsConstructor
 public class EmployeeController {
     private final EmployeeService employeeService;
-    @GetMapping("/getemployeebyid")
+
+    @GetMapping("/get")
     public ResponseEntity<Employee> getEmployeeById(@RequestParam Long id){
         MeterReading m = new MeterReading();
         Employee employee = employeeService.getEmployee(id);

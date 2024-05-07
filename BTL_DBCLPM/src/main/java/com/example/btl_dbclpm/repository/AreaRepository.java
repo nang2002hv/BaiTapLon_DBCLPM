@@ -12,12 +12,5 @@ import java.util.List;
 
 @Repository
 public interface AreaRepository extends JpaRepository<Area,Long> {
-
-
-    public List<Area> findByEmployee(Employee employee);
-
-    @Query("select id from Area where district = :district and wardCommune = :wardCommune and city = :city")
-    public Integer findAreaIdByDistrictAndWardCommune(@Param("district") String district, @Param("wardCommune") String wardCommune,@Param("city") String city);
-
-
+    List<Area> findByEmployee(Employee employee);
 }

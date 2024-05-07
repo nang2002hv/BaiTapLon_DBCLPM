@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,11 +16,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 @Table(name ="employee")
 public class Employee extends User{
     private String employeeCode;
     private String position;
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<Area> managementArea;
 }

@@ -14,9 +14,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Controller
 @RestController
-@RequestMapping("api/metterreading")
+@RequestMapping("api/meter-reading")
 @CrossOrigin
 @RequiredArgsConstructor
 public class MeterReadingController {

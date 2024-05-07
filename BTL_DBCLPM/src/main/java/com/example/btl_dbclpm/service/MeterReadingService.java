@@ -7,7 +7,7 @@ import com.example.btl_dbclpm.model.Meter;
 import com.example.btl_dbclpm.model.MeterReading;
 import com.example.btl_dbclpm.repository.BillRepository;
 import com.example.btl_dbclpm.repository.MeterReadingRepository;
-import com.example.btl_dbclpm.repository.MeterRepositiory;
+import com.example.btl_dbclpm.repository.MeterRepository;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,8 +24,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MeterReadingService {
     private final MeterReadingRepository meterReadingRepository;
-    private final MeterRepositiory meterRepositiory;
+    private final MeterRepository meterRepository;
     private final BillRepository billRepository;
+
     public MeterReading updateMeterReading(MeterReading meterReading){
         if(checkValidate(meterReading)){
             long id = meterReading.getId();
@@ -33,16 +34,13 @@ public class MeterReadingService {
             java.sql.Date sqlDate = new java.sql.Date(currentDate.getTime());
             SimpleDateFormat formatter1 = new SimpleDateFormat("yyyy-MM-dd");
             String[] timeString = formatter1.format(sqlDate).split("-");
-            System.out.println(timeString[0] + "" + timeString[1] + "" + timeString[2]);
             meterReading.setStatus(StatusEnum.WAITING_FOR_CALCULATION.toString());
-//            return meterReadingRepository.save(meterReading);
             MeterReading meterReading1 = meterReadingRepository.save(meterReading);
-            Meter meter = meterRepositiory.findByMeterReadingsContains(meterReading1);
+            Meter meter = meterRepository.findByMeterReadingsContains(meterReading1);
             meter.setTimeUpdate(sqlDate);
-            meterRepositiory.save(meter);
+            meterRepository.save(meter);
             Bill bill = new Bill();
             bill.setReading(meterReading1);
-            System.out.println(meterReading.getId());
             if(id == 0){
                 billRepository.save(bill);
             }
@@ -52,17 +50,14 @@ public class MeterReadingService {
     }
 
     public boolean checkValidate(MeterReading meterReading){
-        if(StringUtils.isEmpty(meterReading.getCurrentReading()+"") || meterReading.getCurrentReading() <0 || meterReading.getCurrentReading() < meterReading.getPreviousReading() || meterReading.getPreviousReading() < 0){
-            return false;
-        }
-        return true;
+        return !StringUtils.isEmpty(meterReading.getCurrentReading() + "") && meterReading.getCurrentReading() >= 0 && meterReading.getCurrentReading() >= meterReading.getPreviousReading() && meterReading.getPreviousReading() >= 0;
     }
 
     public List<MeterReading> filterByArea(Area area) {
         LocalDate currentDate = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String mysqlFormattedDate[] = currentDate.format(formatter).split("-");
-        List<Meter> meterList = meterRepositiory.findByArea(area); //id
+        String[] mysqlFormattedDate = currentDate.format(formatter).split("-");
+        List<Meter> meterList = meterRepository.findByArea(area); //id
         if(meterList == null){
             return null;
         }
@@ -73,11 +68,9 @@ public class MeterReadingService {
             String[] timeString = formatter1.format(time).split("-");
             MeterReading meterReading = new MeterReading(); // luu meterRading cuoi cung, neu khong co meterreading thi tao moi 1 cai
 
-            if(meterList.get(i).getMeterReadings().size() > 0){
+            if(!meterList.get(i).getMeterReadings().isEmpty()){
 
-                //so sánh ngày update
                 if(Integer.valueOf(timeString[0]).equals(Integer.valueOf(mysqlFormattedDate[0])) && Integer.valueOf(timeString[1]).equals(Integer.valueOf(mysqlFormattedDate[1]))){
-                    // Néu mà thời gian update bằng chứng tỏ đã nhập meterReading trong tháng này. Tạo một meterReaing ;
                     meterReading = meterList.get(i).getMeterReadings().get(meterList.get(i).getMeterReadings().size()-1);
                 } else {
                     // nếu tháng không không trùng nghĩa là tháng này chưa nhập. Tạo một meterReading mới và gán previous = currnt ở meterReading tháng trước.

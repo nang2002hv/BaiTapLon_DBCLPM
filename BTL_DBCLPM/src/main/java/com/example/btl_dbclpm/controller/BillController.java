@@ -3,19 +3,17 @@ package com.example.btl_dbclpm.controller;
 import com.example.btl_dbclpm.model.Bill;
 import com.example.btl_dbclpm.model.Meter;
 import com.example.btl_dbclpm.service.BillService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("api/bills")
 @CrossOrigin
+@RequiredArgsConstructor
 public class BillController {
 
     private final BillService billService;
-
-    public BillController(BillService billService) {
-        this.billService = billService;
-    }
 
     @PostMapping("/calculate")
     public ResponseEntity<Bill> calculateBill(@RequestBody Bill bill) {

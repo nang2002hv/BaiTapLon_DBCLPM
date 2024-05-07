@@ -2,7 +2,6 @@ package com.example.btl_dbclpm.service;
 
 import com.example.btl_dbclpm.model.Bill;
 import com.example.btl_dbclpm.repository.BillRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.example.btl_dbclpm.model.Meter;
 import com.example.btl_dbclpm.tariff.ElectricityTariff;
@@ -15,7 +14,6 @@ import java.util.List;
 
 
 @Service
-
 public class BillService {
     private final BillRepository billRepository;
     private final ElectricityTariff electricityTariff = new ElectricityTariff();
@@ -23,12 +21,6 @@ public class BillService {
     public BillService(BillRepository billRepository) {
         this.billRepository = billRepository;
     }
-
-    public void newBill(Bill bill) {
-        billRepository.save(bill);
-    }
-
-
 
     public Bill getBillsByMeter(Meter meter) {
         List<Bill> listFilter = billRepository.findAll().stream()
@@ -44,16 +36,6 @@ public class BillService {
         bill.setAmountAfterTax(calculateAmountAfterTax(bill));
 
         return checkBillValid(bill) ? bill : null;
-    }
-
-    public Bill saveBill(Bill bill) {
-        if (checkBillValid(bill)) {
-            bill.setDateUpdate(Date.valueOf(LocalDate.now()));
-            bill.getReading().setStatus("WAITING_FOR_PAYMENT");
-            bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
-            return billRepository.save(bill);
-        }
-        return null;
     }
 
     private long calculateAmountBeforeTax(Bill bill) {
@@ -74,7 +56,17 @@ public class BillService {
     }
 
     private boolean checkBillValid(Bill bill) {
-        return bill.getConsumption() >= 0 && bill.getAmountBeforeTax() >= 0 && bill.getAmountTax() >= 0 && bill.getAmountAfterTax() >= 0;
+        return bill.getConsumption() >= 0 && bill.getAmountBeforeTax() >= 0 && bill.getAmountTax() >= 0 && bill.getAmountAfterTax() >= 0 && bill.getAmountAfterTax() == bill.getAmountBeforeTax() + bill.getAmountTax();
+    }
+
+    public Bill saveBill(Bill bill) {
+        if (checkBillValid(bill)) {
+            bill.setDateUpdate(Date.valueOf(LocalDate.now()));
+            bill.getReading().setStatus("WAITING_FOR_PAYMENT");
+            bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
+            return billRepository.save(bill);
+        }
+        return null;
     }
 
     private String createBillID(long consumption, long electricityCharge, long tax, long total) {
@@ -83,11 +75,11 @@ public class BillService {
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] messageDigest = md.digest(input.getBytes());
             BigInteger no = new BigInteger(1, messageDigest);
-            String hashtext = no.toString(16);
+            StringBuilder hashtext = new StringBuilder(no.toString(16));
             while (hashtext.length() < 32) {
-                hashtext = "0" + hashtext;
+                hashtext.insert(0, "0");
             }
-            return hashtext;
+            return hashtext.toString();
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
