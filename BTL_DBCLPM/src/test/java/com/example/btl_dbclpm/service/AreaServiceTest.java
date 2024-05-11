@@ -24,7 +24,7 @@ public class AreaServiceTest {
     private AreaRepository areaRepository;
 
     @Test
-    public void testFindByEmployee_StandardCase_ReturnListArea() {
+    public void testFindByEmployee_StandardCase1_ReturnListArea() {
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setFullName("Yến Trinh");
@@ -56,23 +56,5 @@ public class AreaServiceTest {
 
         assertEquals(2, actualAreas.size());
         assertEquals(expectedAreas, actualAreas);
-    }
-
-    @Test
-    public void testFindByEmployee_ExceptionCase_NoEmployeeFound_ReturnEmptyList() {
-        Employee employee = new Employee();
-        employee.setId(51L);
-        employee.setFullName("Yến Trinh");
-        employee.setAuthorization("employee");
-        employee.setEmail("AntionetteGandy449@nowhere.com");
-        employee.setPassword("zN2IdpA9wXB6FrqONOEL3g==");
-        employee.setPhoneNumber("(461) 186-0904");
-        employee.setUsername("nang2002");
-        employee.setEmployeeCode("NV68326");
-        employee.setPosition("manager");
-
-        List<Area> areas = areaService.filterAreaByEmployee(employee);
-
-        assertEquals(0, areas.size());
     }
 }

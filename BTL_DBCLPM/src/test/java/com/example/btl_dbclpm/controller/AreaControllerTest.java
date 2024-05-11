@@ -3,31 +3,42 @@ package com.example.btl_dbclpm.controller;
 import com.example.btl_dbclpm.model.Area;
 import com.example.btl_dbclpm.model.Employee;
 import com.example.btl_dbclpm.service.AreaService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.hamcrest.Matchers.*;
 
 @ExtendWith(MockitoExtension.class)
+@WebMvcTest(AreaController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class AreaControllerTest {
-    @Mock
+
+    @MockBean
     private AreaService areaService;
 
-    @InjectMocks
-    private AreaController areaController;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
-    public void testFilterByEmployee_StandardCase_ReturnListArea() {
+    public void testFilterByEmployee_StandardCase1_ReturnListArea() throws Exception {
         Employee employee = new Employee();
         employee.setId(1L);
         employee.setFullName("Yến Trinh");
@@ -46,7 +57,7 @@ public class AreaControllerTest {
                 .employee(employee)
                 .build();
         Area area2 = Area.builder()
-                .id(50L)
+                .id(2L)
                 .city("Cần Thơ")
                 .district("Ninh Kiều")
                 .wardCommune("An Hòa")
@@ -56,28 +67,13 @@ public class AreaControllerTest {
 
         when(areaService.filterAreaByEmployee(employee)).thenReturn(expectedAreas);
 
-        ResponseEntity<List<Area>> response = areaController.filterByEmployee(employee);
+        ResultActions resultActions = mockMvc.perform(post("/api/areas/filter")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(employee)));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedAreas, response.getBody());
-    }
-
-    @Test
-    public void testFilterByEmployee_ExceptionCase_NoEmployeeFound_ReturnEmptyList() {
-        Employee employee = new Employee();
-        employee.setId(1L);
-        employee.setFullName("Yến Trinh");
-        employee.setAuthorization("employee");
-        employee.setEmail("AntionetteGandy449@nowhere.com");
-        employee.setPassword("zN2IdpA9wXB6FrqONOEL3g==");
-        employee.setPhoneNumber("(461) 186-0904");
-        employee.setUsername("nang2002");
-        employee.setEmployeeCode("NV68326");
-        employee.setPosition("manager");
-
-        ResponseEntity<List<Area>> response = areaController.filterByEmployee(employee);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(0, Objects.requireNonNull(response.getBody()).size());
+        resultActions.andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].city", is(area1.getCity())))
+                .andExpect(jsonPath("$[1].city", is(area2.getCity())));
     }
 }

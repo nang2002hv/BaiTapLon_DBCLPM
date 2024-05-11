@@ -9,19 +9,16 @@ import java.sql.Date;
 
 @Entity
 @Data
-@Table(name="bill")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Bill {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
     private String billCode ="";
     private Date dateUpdate = null;
     private long consumption = -1;
     private long amountTax = -1;
-    private long total = -1;
     private long amountBeforeTax = -1;
     private final double taxRate = 0.08;
     private long amountAfterTax = -1;

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,7 +18,6 @@ public class Meter {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id ;
-
     private String meterCode;
     private String installmentAddress;
     private Date installmentDate; //
@@ -29,7 +29,7 @@ public class Meter {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "customer_id")
     private Customer customer;
-    @OneToMany(mappedBy = "meter", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "meter", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<MeterReading> meterReadings;
+    private List<MeterReading> meterReadings = new ArrayList<>();
 }

@@ -6,15 +6,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "contract")
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class Contract {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private long id;
     private String contractCode;
     private String sellerRepresentation;
     private String customerCode;

@@ -17,8 +17,7 @@ import java.sql.Date;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private long id;
     private String paymentMethod;
     private Date paymentDate;
     private Double amount;

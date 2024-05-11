@@ -13,7 +13,6 @@ public class MeterReading {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id = 0;
-
     private Double previousReading = 0.0;
     private Double currentReading = 0.0;
     private String status ="WAITING_FOR_INPUT";

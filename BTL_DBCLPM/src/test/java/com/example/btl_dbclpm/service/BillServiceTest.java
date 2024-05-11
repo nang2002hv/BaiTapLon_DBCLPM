@@ -24,7 +24,7 @@ public class BillServiceTest {
     private BillRepository billRepository;
 
     @Test
-    public void testGetBillsByMeter_StandardCase_ReturnLatestBillOfMeter() {
+    public void testGetBillsByMeter_StandardCase1_ReturnLatestBillOfMeter() {
         Meter meter = new Meter();
         meter.setId(1L);
 
@@ -47,7 +47,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testGetBillsByMeter_ExceptionCase_NoBillFound() {
+    public void testGetBillsByMeter_ExceptionCase1_NoBillFound() {
         Meter meter = new Meter();
         meter.setId(1L);
 
@@ -59,7 +59,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testGetBillsByMeter_ExceptionCase_FoundBill_BillHasNoReading() {
+    public void testGetBillsByMeter_ExceptionCase2_FoundBill_BillHasNoReading() {
         Meter meter = new Meter();
         meter.setId(1L);
 
@@ -74,7 +74,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testGetBillsByMeter_ExceptionCase_FoundBill_BillHasReading_MeterIdDoesNotMatch() {
+    public void testGetBillsByMeter_ExceptionCase3_FoundBill_BillHasReading_MeterIdDoesNotMatch() {
         Meter meter1 = new Meter();
         meter1.setId(1L);
 
@@ -95,7 +95,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_CalculateAt50Consumption() {
+    public void testCalculateBill_StandardCase1_CalculateAt50Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -109,7 +109,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At100Consumption() {
+    public void testCalculateBill_StandardCase2_At100Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -123,7 +123,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At200Consumption() {
+    public void testCalculateBill_StandardCase3_At200Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -137,7 +137,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At300Consumption() {
+    public void testCalculateBill_StandardCase4_At300Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -151,7 +151,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At400Consumption() {
+    public void testCalculateBill_StandardCase5_At400Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -165,7 +165,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At500Consumption() {
+    public void testCalculateBill_StandardCase6_At500Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -179,7 +179,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_StandardCase_At0Consumption() {
+    public void testCalculateBill_StandardCase7_At0Consumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -193,7 +193,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testCalculateBill_ExceptionCase_CalculateAtNegativeConsumption() {
+    public void testCalculateBill_ExceptionCase1_CalculateAtNegativeConsumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(10.0);
@@ -204,7 +204,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_StandardCase_ReturnBillSaved() {
+    public void testSaveBill_StandardCase1_ReturnBillSaved() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -226,7 +226,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_NegativeConsumption() {
+    public void testSaveBill_ExceptionCase1_NegativeConsumption() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);
@@ -240,7 +240,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_NegativeAmountBeforeTax() {
+    public void testSaveBill_ExceptionCase2_NegativeAmountBeforeTax() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);
@@ -255,7 +255,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_NegativeAmountTax() {
+    public void testSaveBill_ExceptionCase3_NegativeAmountTax() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);
@@ -271,7 +271,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_NegativeAmountAfterTax() {
+    public void testSaveBill_ExceptionCase4_NegativeAmountAfterTax() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);
@@ -288,7 +288,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_AmountBeforeTaxNotEqualSumOfAmountBeforeTaxAndAmountTax() {
+    public void testSaveBill_ExceptionCase5_AmountBeforeTaxNotEqualSumOfAmountBeforeTaxAndAmountTax() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);

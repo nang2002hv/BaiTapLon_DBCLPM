@@ -8,17 +8,18 @@ import lombok.NoArgsConstructor;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Data
+@Table(name = "users")
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Long id;
-
+    protected long id;
     protected String fullName;
     protected String phoneNumber;
     protected String email;
     protected String password;
+    @Column(name = "authorizations")
     protected String authorization;
     protected String username;
 }

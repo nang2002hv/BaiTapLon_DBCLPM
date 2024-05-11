@@ -4,30 +4,41 @@ import com.example.btl_dbclpm.model.Bill;
 import com.example.btl_dbclpm.model.Meter;
 import com.example.btl_dbclpm.model.MeterReading;
 import com.example.btl_dbclpm.service.BillService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-
-import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.hamcrest.Matchers.*;
 
 @ExtendWith(MockitoExtension.class)
+@WebMvcTest(BillController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class BillControllerTest {
-    @Mock
-    public BillService billService;
+    @MockBean
+    private BillService billService;
 
-    @InjectMocks
-    public BillController billController;
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
-    public void testCalculateBill_StandardCase_ReturnBill() {
+    public void testCalculateBill_StandardCase1_ReturnBill() throws Exception {
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
         meterReading.setCurrentReading(50.0);
@@ -40,35 +51,35 @@ public class BillControllerTest {
         billAfterCalculate.setAmountTax(7224);
         billAfterCalculate.setAmountAfterTax(97524);
 
-        Mockito.when(billService.calculateBill(bill)).thenReturn(billAfterCalculate);
+        when(billService.calculateBill(bill)).thenReturn(billAfterCalculate);
 
-        ResponseEntity<Bill> result = billController.calculateBill(bill);
-
-        assertNotNull(result);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(50, Objects.requireNonNull(result.getBody()).getConsumption());
-        assertEquals(90300, Objects.requireNonNull(result.getBody()).getAmountBeforeTax());
-        assertEquals(7224, Objects.requireNonNull(result.getBody()).getAmountTax());
-        assertEquals(97524, Objects.requireNonNull(result.getBody()).getAmountAfterTax());
+        mockMvc.perform(post("/api/bills/calculate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bill)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.consumption", is(50)))
+                .andExpect(jsonPath("$.amountBeforeTax", is(90300)))
+                .andExpect(jsonPath("$.amountTax", is(7224)))
+                .andExpect(jsonPath("$.amountAfterTax", is(97524)));
     }
 
     @Test
-    public void testCalculateBill_ExceptionCase_ReturnBadRequest() {
+    public void testCalculateBill_StandardCase2_MeterReadingNotValid_ReturnBadRequest() throws Exception {
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(50.0);
         meterReading.setCurrentReading(0.0);
         Bill bill = new Bill();
         bill.setReading(meterReading);
-        Mockito.when(billService.calculateBill(bill)).thenReturn(null);
+        when(billService.calculateBill(bill)).thenReturn(null);
 
-        ResponseEntity<Bill> result = billController.calculateBill(bill);
-
-        assertNotNull(result);
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        mockMvc.perform(post("/api/bills/calculate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bill)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void testGetBillsByMeter_StandardCase_ReturnLatestBill() {
+    public void testGetBillsByMeter_StandardCase1_ReturnLatestBill() throws Exception {
         Meter meter = new Meter();
         meter.setId(1L);
 
@@ -83,29 +94,34 @@ public class BillControllerTest {
         Bill bill2 = new Bill();
         bill2.setReading(meterReading2);
 
-        Mockito.when(billService.getBillsByMeter(meter)).thenReturn(bill2);
+        when(billService.getBillsByMeter(meter)).thenReturn(bill2);
 
-        ResponseEntity<Bill> result = billController.getBillsByMeter(meter);
+        MvcResult mvcResult = mockMvc.perform(post("/api/bills/get-bills")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(meter)))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertNotNull(result);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(bill2, result.getBody());
+        String response = mvcResult.getResponse().getContentAsString();
+        JsonNode responseJson = objectMapper.readTree(response);
+        long id = responseJson.get("id").asLong();
+        assertEquals(bill2.getId(), id);
     }
 
     @Test
-    public void testGetBillsByMeter_ExceptionCase_ReturnBadRequest() {
+    public void testGetBillsByMeter_StandardCase2_NoBillFound_ReturnBadRequest() throws Exception {
         Meter meter = new Meter();
         meter.setId(1L);
-        Mockito.when(billService.getBillsByMeter(meter)).thenReturn(null);
+        when(billService.getBillsByMeter(meter)).thenReturn(null);
 
-        ResponseEntity<Bill> result = billController.getBillsByMeter(meter);
-
-        assertNotNull(result);
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        mockMvc.perform(post("/api/bills/get-bills")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(meter)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void testSaveBill_StandardCase_ReturnBillSaved() {
+    public void testSaveBill_StandardCase_ReturnBillSaved() throws Exception {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0.0);
@@ -127,17 +143,29 @@ public class BillControllerTest {
         billAfterSave.setAmountBeforeTax(90300);
         billAfterSave.setAmountTax(7224);
         billAfterSave.setAmountAfterTax(97524);
-        Mockito.when(billService.saveBill(bill)).thenReturn(billAfterSave);
+        when(billService.saveBill(bill)).thenReturn(billAfterSave);
 
-        ResponseEntity<Bill> result = billController.saveBill(bill);
+        MvcResult mvcResult = mockMvc.perform(post("/api/bills/save")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bill)))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertNotNull(result);
-        assertEquals(HttpStatus.OK, result.getStatusCode());
-        assertEquals(billAfterSave, result.getBody());
+        String response = mvcResult.getResponse().getContentAsString();
+        JsonNode responseJson = objectMapper.readTree(response);
+        long consumption = responseJson.get("consumption").asLong();
+        long amountBeforeTax = responseJson.get("amountBeforeTax").asLong();
+        long amountTax = responseJson.get("amountTax").asLong();
+        long amountAfterTax = responseJson.get("amountAfterTax").asLong();
+
+        assertEquals(billAfterSave.getConsumption(), consumption);
+        assertEquals(billAfterSave.getAmountBeforeTax(), amountBeforeTax);
+        assertEquals(billAfterSave.getAmountTax(), amountTax);
+        assertEquals(billAfterSave.getAmountAfterTax(), amountAfterTax);
     }
 
     @Test
-    public void testSaveBill_ExceptionCase_ReturnBadRequest() {
+    public void testSaveBill_StandardCase_SaveBillNotValid_ReturnBadRequest() throws Exception {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setCurrentReading(0.0);
@@ -146,11 +174,11 @@ public class BillControllerTest {
         bill.setConsumption(100);
         bill.setAmountBeforeTax(-1);
 
-        Mockito.when(billService.saveBill(bill)).thenReturn(null);
+        when(billService.saveBill(bill)).thenReturn(null);
 
-        ResponseEntity<Bill> result = billController.saveBill(bill);
-
-        assertNotNull(result);
-        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        mockMvc.perform(post("/api/bills/save")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(bill)))
+                .andExpect(status().isBadRequest());
     }
 }
