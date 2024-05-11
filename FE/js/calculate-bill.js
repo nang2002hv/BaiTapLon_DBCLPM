@@ -32,6 +32,7 @@ setInterval(function () {
 
 document.addEventListener('DOMContentLoaded', function () {
   var employee = localStorage.getItem('employee'); // Lấy dữ liệu từ localStorage
+  console.log(employee)
   listMeter = [];
   fetch('http://localhost:8080/api/areas/filter', {
     method: 'POST',
@@ -111,8 +112,6 @@ document.querySelector('.city').addEventListener('click', function () {
   wardCommune.appendChild(option1);
   districtDataLoaded = false;
 });
-
-
 
 document.querySelector('.district').addEventListener('click', function () {
   var nameCitys = document.querySelector(".city").value;
@@ -225,6 +224,8 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
               var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
               var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
               var amountAfterTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountAfterTax;
+              var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Chờ tính toán' : 'Đã tính toán';
+              var dateUpdate = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.dateUpdate;
 
               var rowNode = table.row.add([
                 data.reading.meter.meterCode,
@@ -234,7 +235,9 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
                 data.reading.currentReading,
                 amountBeforeTax,
                 amountTax,
-                amountAfterTax
+                amountAfterTax,
+                dateUpdate,
+                status
               ]).draw().node();
 
               $(rowNode).attr('id', 'id-' + data.id);
@@ -309,6 +312,7 @@ document.querySelector('.calculate').addEventListener('click', function () {
           var amountBeforeTax = data.amountBeforeTax <= 0 ? '' : data.amountBeforeTax;
           var amountTax = data.amountTax <= 0 ? '' : data.amountTax;
           var amountAfterTax = data.amountAfterTax <= 0 ? '' : data.amountAfterTax;
+
           console.log(amountBeforeTax)
           table.row('#id-' + data.id).data([
             data.reading.meter.meterCode,
@@ -318,7 +322,9 @@ document.querySelector('.calculate').addEventListener('click', function () {
             data.reading.currentReading,
             amountBeforeTax,
             amountTax,
-            amountAfterTax
+            amountAfterTax,
+            "",
+            "Chờ tính toán"
           ]).draw();
           $('#id-' + data.id).css('background-color', 'white');
           $('#id-' + data.id).attr('data-color', 'white');
@@ -344,16 +350,21 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
   table.rows().every(function () {
     var data = this.data();
     data.forEach(cell => {
-      if (cell === '') {
+      var emptyField = 0
+      if (cell === '' ) {
+        emptyField++;
+        
+        if(emptyField > 1)
+          hasEmptyField = true;
+      }
+      if(emptyField > 1) {
         $(this.node()).css('background-color', 'red');
         $(this.node()).attr('data-color', 'red');
-
-        hasEmptyField = true;
       }
     });
   });
 
-  if (!hasEmptyField) {
+  if (hasEmptyField <= 1) {
     listBill.forEach(bill => {
       fetch('http://localhost:8080/api/bills/save', {
         method: 'POST',

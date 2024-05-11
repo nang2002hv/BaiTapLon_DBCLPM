@@ -1,12 +1,10 @@
 package com.example.btl_dbclpm.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -18,5 +16,10 @@ import java.util.List;
 @Table(name ="employee")
 public class Employee extends User{
     private String employeeCode;
+    @Column(name = "`position`")
     private String position;
+
+    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Area> areas = new ArrayList<>();
 }

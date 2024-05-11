@@ -1,5 +1,6 @@
 package com.example.btl_dbclpm.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,5 +21,6 @@ public class Area {
     private String city;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id")
+    @JsonIgnore
     private Employee employee;
 }
