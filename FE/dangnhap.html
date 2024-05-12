@@ -115,8 +115,16 @@
 
             if (response.status === 200) {
                 const user = await response.json();
-                localStorage.setItem('employee', JSON.stringify(user));
-                window.location.href = "/update.html";
+                console.log(user.authorization);
+                if(user.authorization == 'employee') {
+                    localStorage.setItem('employee', JSON.stringify(user));
+                    window.location.href = "/update.html";
+                }
+                else {
+                    localStorage.setItem('customer', JSON.stringify(user));
+                    window.location.href = "/calculate-bill-customer.html";
+                }
+                
             } else {
                 alert("Đăng nhập thất bại!");
             }

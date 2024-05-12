@@ -1,7 +1,9 @@
 package com.example.btl_dbclpm.service;
 
+import com.example.btl_dbclpm.model.AmountByStep;
 import com.example.btl_dbclpm.model.Bill;
 import com.example.btl_dbclpm.model.Payment;
+import com.example.btl_dbclpm.repository.AmountByStepRepository;
 import com.example.btl_dbclpm.repository.BillRepository;
 import org.springframework.stereotype.Service;
 import com.example.btl_dbclpm.model.Meter;
@@ -17,10 +19,12 @@ import java.util.List;
 @Service
 public class BillService {
     private final BillRepository billRepository;
+    private final AmountByStepRepository amountByStepRepository;
     private final ElectricityTariff electricityTariff = new ElectricityTariff();
 
-    public BillService(BillRepository billRepository) {
+    public BillService(BillRepository billRepository, AmountByStepRepository amountByStepRepository) {
         this.billRepository = billRepository;
+        this.amountByStepRepository = amountByStepRepository;
     }
 
     public Bill getBillsByMeter(Meter meter) {
@@ -35,13 +39,24 @@ public class BillService {
         bill.setAmountBeforeTax(calculateAmountBeforeTax(bill));
         bill.setAmountTax(calculateAmountTax(bill));
         bill.setAmountAfterTax(calculateAmountAfterTax(bill));
+        bill.setAmountByStep(calculateAmountByStep(bill));
 
         return checkBillValid(bill) ? bill : null;
     }
 
+    private List<AmountByStep> calculateAmountByStep(Bill bill) {
+        long consumption = calculateConsumption(bill);
+        return electricityTariff.calculatePrice(consumption);
+    }
+
     private long calculateAmountBeforeTax(Bill bill) {
         long consumption = calculateConsumption(bill);
-        return Math.round(electricityTariff.calculatePrice(consumption));
+        List<AmountByStep> resultList = electricityTariff.calculatePrice(consumption);
+        double result = 0;
+        for (AmountByStep amountByStep : resultList) {
+            result += amountByStep.getAmount();
+        }
+        return Math.round(result);
     }
 
     private long calculateConsumption(Bill bill) {
@@ -57,7 +72,7 @@ public class BillService {
     }
 
     private boolean checkBillValid(Bill bill) {
-        return bill.getConsumption() >= 0 && bill.getAmountBeforeTax() >= 0 && bill.getAmountTax() >= 0 && bill.getAmountAfterTax() >= 0 && bill.getAmountAfterTax() == bill.getAmountBeforeTax() + bill.getAmountTax();
+        return bill.getConsumption() > 0 && bill.getAmountBeforeTax() > 0 && bill.getAmountTax() > 0 && bill.getAmountAfterTax() >= 0 && bill.getAmountAfterTax() == bill.getAmountBeforeTax() + bill.getAmountTax();
     }
 
     public Bill saveBill(Bill bill) {
@@ -65,10 +80,24 @@ public class BillService {
             bill.setDateUpdate(Date.valueOf(LocalDate.now()));
             bill.getReading().setStatus("WAITING_FOR_PAYMENT");
             bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
-            Payment payment = new Payment();
-            payment.setAmount(bill.getAmountAfterTax());
-            bill.setPayment(payment);
-            billRepository.save(bill);
+            if(bill.getPayment() == null) {
+                Payment payment = new Payment();
+                payment.setAmount(bill.getAmountAfterTax());
+                bill.setPayment(payment);
+            }
+            else {
+                bill.getPayment().setAmount(bill.getAmountAfterTax());
+            }
+            for (AmountByStep amountByStep : bill.getAmountByStep()) {
+                List<AmountByStep> amountByStepList = amountByStepRepository.findByBillIdAndStep(bill.getId(), amountByStep.getStep());
+                if(!amountByStepList.isEmpty()) {
+                    amountByStepRepository.deleteAll(amountByStepList);
+                }
+                if(amountByStep.getBill() == null) {
+                    amountByStep.setBill(bill);
+                }
+            }
+            return billRepository.save(bill);
         }
         return null;
     }

@@ -56,7 +56,7 @@
 
             <!-- Nav Item - Dashboard -->
             <li class="nav-item active">
-                <a class="nav-link" href="calculate-bill.html" style="color: #df4545;">
+                <a class="nav-link" href="calculate-bill-customer.html" style="background: rgba(0, 0, 0, 0.277);">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Tính tiền điện</span>
                 </a>
@@ -71,79 +71,72 @@
 
             <!-- Main Content -->
             <div id="content">
-
-
-                <div class="ml-5 mt-4">
-
-                    <h5 class="mb-4 font-weight-bold text-primary">Chọn khu vực quản lý:</h6>
-                        <div class="row mb-2 d-flex flex-row align-items-center">
-                            <div class="col-2">
-                                <h6 class="m-0 font-weight-bold text-primary">Tỉnh/thành phố:</h6>
-                            </div>
-                            <div class="col-1">
-                                <select class="form-select city" aria-label="Default select example" style="width: 200px;">
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-2 d-flex flex-row align-items-center">
-                            <div class="col-2">
-                                <h6 class="m-0 font-weight-bold text-primary">Quận/huyện:</h6>
-                            </div>
-                            <div class="col-1">
-                                <select class="form-select district" aria-label="Default select example" style="width: 200px;">
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4 d-flex flex-row align-items-center">
-                            <div class="col-2">
-                                <h6 class="m-0 font-weight-bold text-primary">Phường/xã:</h6>
-                            </div>
-                            <div class="col-1">
-                                <select class="form-select ward-commune" aria-label="Default select example" style="width: 200px;">
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="button" class="btn mb-4 btn-primary mr-3 filter-by-area">Lọc theo khu vực</button>
-                        <button type="button" class="btn mb-4 btn-primary mr-3 calculate">Tính toán tiền điện</button>
-                        <button type="button" class="btn mb-4 btn-primary confirm-and-save">Xác nhận và lưu</button>
-                </div>
-
-                <!-- Begin Page Content -->
-                <div class="container-fluid">
-
-                    <!-- DataTales -->
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h5 class="m-0 font-weight-bold text-primary">Danh sách hộ cá nhân</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Mã công tơ</th>
-                                            <th style="width: 15%; text-align: center; vertical-align: middle;">Tên khách hàng</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Loại công tơ</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Số điện trước</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Số điện hiện tại</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Tiền điện chưa thuế</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Tiền thuế</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Tổng tiền</th>
-                                            <th style="width: 10%; text-align: center; vertical-align: middle;">Thời gian lưu</th>
-                                            <th style="width: 5%; text-align: center; vertical-align: middle;">Trạng thái</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                
+                <form class="m-3">
+                    <div class="form-group">
+                        <label for="previous">Nhập số điện trước</label>
+                        <input class="form-control" id="previous">
                     </div>
+                    <div class="form-group">
+                        <label for="current">Nhập số điện hiện tại</label>
+                        <input class="form-control" id="current">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Tính toán</button>
+                </form>
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Bậc</th>
+                                    <th scope="col">Đơn giá (VNĐ/kWh)</th>
+                                    <th scope="col">Sản lượng (kWh)</th>
+                                    <th scope="col">Thành tiền (VNĐ)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="m-3">
+                        <h5 class="mb-4 font-weight-bold text-primary">Kết quả:</h6>
+                        <div class="row mb-2 d-flex flex-row align-items-center">
+                            <div class="col-2">
+                                <h6 class="m-0 font-weight-bold text-primary">Số điện tiêu thụ:</h6>
+                            </div>
+                            <div class="col-1">
+                                <h6 id="consumed" class="m-0 font-weight-bold text-secondary"></h6>
+                            </div>
+                        </div>
+                        <div class="row mb-2 d-flex flex-row align-items-center">
+                            <div class="col-2">
+                                <h6 class="m-0 font-weight-bold text-primary">Tiền điện chưa thuế:</h6>
+                            </div>
+                            <div class="col-1">
+                                <h6 id="total" class="m-0 font-weight-bold text-secondary"></h6>
+                            </div>
+                        </div>
+                        <div class="row mb-2 d-flex flex-row align-items-center">
+                            <div class="col-2">
+                                <h6 class="m-0 font-weight-bold text-primary">Tiền thuế (8%):</h6>
+                            </div>
+                            <div class="col-1">
+                                <h6 id="totalTax" class="m-0 font-weight-bold text-secondary"></h6>
+                            </div>
+                        </div>
+                        <div class="row mb-2 d-flex flex-row align-items-center">
+                            <div class="col-2">
+                                <h6 class="m-0 font-weight-bold text-primary">Tổng tiền:</h6>
+                            </div>
+                            <div class="col-1">
+                                <h6 id="totalWithTax" class="m-0 font-weight-bold text-secondary"></h6>
+                            </div>  
+                        </div>
                 </div>
-                <!-- /.container-fluid -->
+
+                
             </div>
             <!-- End of Main Content -->
 
@@ -171,7 +164,7 @@
     <script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
     <!-- Page level custom scripts -->
-    <script src="js/calculate-bill.js"></script>
+    <script src="js/calculate-bill-customer.js"></script>
 
 </body>
 

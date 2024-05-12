@@ -106,6 +106,9 @@ public class BillServiceTest {
         assertEquals(90300, result.getAmountBeforeTax());
         assertEquals(7224, result.getAmountTax());
         assertEquals(97524, result.getAmountAfterTax());
+        assertEquals(1, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
     }
 
     @Test
@@ -120,6 +123,11 @@ public class BillServiceTest {
         assertEquals(183600, result.getAmountBeforeTax());
         assertEquals(14688, result.getAmountTax());
         assertEquals(198288, result.getAmountAfterTax());
+        assertEquals(2, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
+        assertEquals(2, result.getAmountByStep().get(1).getStep());
+        assertEquals(93300, result.getAmountByStep().get(1).getAmount());
     }
 
     @Test
@@ -134,6 +142,13 @@ public class BillServiceTest {
         assertEquals(400300, result.getAmountBeforeTax());
         assertEquals(32024, result.getAmountTax());
         assertEquals(432324, result.getAmountAfterTax());
+        assertEquals(3, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
+        assertEquals(2, result.getAmountByStep().get(1).getStep());
+        assertEquals(93300, result.getAmountByStep().get(1).getAmount());
+        assertEquals(3, result.getAmountByStep().get(2).getStep());
+        assertEquals(216700, result.getAmountByStep().get(2).getAmount());
     }
 
     @Test
@@ -148,6 +163,15 @@ public class BillServiceTest {
         assertEquals(673200, result.getAmountBeforeTax());
         assertEquals(53856, result.getAmountTax());
         assertEquals(727056, result.getAmountAfterTax());
+        assertEquals(4, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
+        assertEquals(2, result.getAmountByStep().get(1).getStep());
+        assertEquals(93300, result.getAmountByStep().get(1).getAmount());
+        assertEquals(3, result.getAmountByStep().get(2).getStep());
+        assertEquals(216700, result.getAmountByStep().get(2).getAmount());
+        assertEquals(4, result.getAmountByStep().get(3).getStep());
+        assertEquals(272900, result.getAmountByStep().get(3).getAmount());
     }
 
     @Test
@@ -162,6 +186,17 @@ public class BillServiceTest {
         assertEquals(978200, result.getAmountBeforeTax());
         assertEquals(78256, result.getAmountTax());
         assertEquals(1056456, result.getAmountAfterTax());
+        assertEquals(5, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
+        assertEquals(2, result.getAmountByStep().get(1).getStep());
+        assertEquals(93300, result.getAmountByStep().get(1).getAmount());
+        assertEquals(3, result.getAmountByStep().get(2).getStep());
+        assertEquals(216700, result.getAmountByStep().get(2).getAmount());
+        assertEquals(4, result.getAmountByStep().get(3).getStep());
+        assertEquals(272900, result.getAmountByStep().get(3).getAmount());
+        assertEquals(5, result.getAmountByStep().get(4).getStep());
+        assertEquals(305000, result.getAmountByStep().get(4).getAmount());
     }
 
     @Test
@@ -176,6 +211,19 @@ public class BillServiceTest {
         assertEquals(1293300, result.getAmountBeforeTax());
         assertEquals(103464, result.getAmountTax());
         assertEquals(1396764, result.getAmountAfterTax());
+        assertEquals(6, result.getAmountByStep().size());
+        assertEquals(1, result.getAmountByStep().get(0).getStep());
+        assertEquals(90300, result.getAmountByStep().get(0).getAmount());
+        assertEquals(2, result.getAmountByStep().get(1).getStep());
+        assertEquals(93300, result.getAmountByStep().get(1).getAmount());
+        assertEquals(3, result.getAmountByStep().get(2).getStep());
+        assertEquals(216700, result.getAmountByStep().get(2).getAmount());
+        assertEquals(4, result.getAmountByStep().get(3).getStep());
+        assertEquals(272900, result.getAmountByStep().get(3).getAmount());
+        assertEquals(5, result.getAmountByStep().get(4).getStep());
+        assertEquals(305000, result.getAmountByStep().get(4).getAmount());
+        assertEquals(6, result.getAmountByStep().get(5).getStep());
+        assertEquals(315100, result.getAmountByStep().get(5).getAmount());
     }
 
     @Test
@@ -186,10 +234,7 @@ public class BillServiceTest {
         meterReading.setCurrentReading(0.0);
         bill.setReading(meterReading);
         Bill result = billService.calculateBill(bill);
-        assertEquals(0, result.getConsumption());
-        assertEquals(0, result.getAmountBeforeTax());
-        assertEquals(0, result.getAmountTax());
-        assertEquals(0, result.getAmountAfterTax());
+        assertNull(result);
     }
 
     @Test

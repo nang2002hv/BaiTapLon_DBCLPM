@@ -19,6 +19,4 @@ public class MeterReading {
     @ManyToOne
     @JoinColumn(name = "meter_id")
     private Meter meter;
-
-
 }

@@ -12,14 +12,7 @@ $('.confirm-and-save').prop('disabled', true);
 $('.calculate').prop('disabled', true);
 
 setInterval(function () {
-  table.rows().every(function () {
-    var dataColor = $(this.node()).attr('data-color');
-    if (dataColor === 'white' || dataColor === 'red') {
-      hasWhiteDataColor = true;
-      return false;
-    }
-  });
-
+  console.log(hasWhiteDataColor)
   if (hasWhiteDataColor) {
     $('.confirm-and-save').prop('disabled', false);
     $('.calculate').prop('disabled', false);
@@ -220,6 +213,7 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
             .then(data => {
               if (data.reading.status === 'WAITING_FOR_CALCULATION') {
                 listBill.push(data);
+                hasWhiteDataColor = true;
               }
               var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
               var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
@@ -313,7 +307,6 @@ document.querySelector('.calculate').addEventListener('click', function () {
           var amountTax = data.amountTax <= 0 ? '' : data.amountTax;
           var amountAfterTax = data.amountAfterTax <= 0 ? '' : data.amountAfterTax;
 
-          console.log(amountBeforeTax)
           table.row('#id-' + data.id).data([
             data.reading.meter.meterCode,
             data.reading.meter.customer.fullName,
@@ -329,6 +322,7 @@ document.querySelector('.calculate').addEventListener('click', function () {
           $('#id-' + data.id).css('background-color', 'white');
           $('#id-' + data.id).attr('data-color', 'white');
           listBill[index] = data;
+          // console.log(listBill[index])
         })
         .catch(error => {
           console.log(error)
@@ -364,31 +358,59 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
     });
   });
 
-  if (hasEmptyField <= 1) {
-    listBill.forEach(bill => {
-      fetch('http://localhost:8080/api/bills/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bill)
-      })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to save bill');
-          }
-          else {
-            table.clear().draw();
-            listBill = [];
-            hasWhiteDataColor = false;
-          }
+  if (!hasEmptyField) {
+    Promise.all(
+      listBill.map(bill => {
+        fetch('http://localhost:8080/api/bills/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(bill)
         })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Failed to save bill');
+            }
+            else {
+              return response.json();
+            }
+          })
+          .then(data => {
+            var rowNode = table.row('#id-' + bill.id).node();
+            rowNode.style.backgroundColor = 'green';
+            rowNode.style.color = 'white';
+            $(rowNode).attr('data-color', 'green');
 
-        .catch(error => {
-          console.error('Error:', error);
-        });
+            var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
+            var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
+            var amountAfterTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountAfterTax;
+            var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Chờ tính toán' : 'Đã tính toán';
+            var dateUpdate = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.dateUpdate;
+            
+            table.row('#id-' + data.id).data([
+              data.reading.meter.meterCode,
+              data.reading.meter.customer.fullName,
+              data.reading.meter.meterType,
+              data.reading.previousReading,
+              data.reading.currentReading,
+              amountBeforeTax,
+              amountTax,
+              amountAfterTax,
+              dateUpdate,
+              status
+            ]).draw();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Lưu thất bại');
+          });
+      })
+    ).then(() => {
+      hasWhiteDataColor = false;
+      listBill = [];
+      alert('Lưu thành công');
     });
-    alert('Lưu thành công');
   }
   else {
     alert('Vui lòng tính toán hóa đơn trước khi lưu')

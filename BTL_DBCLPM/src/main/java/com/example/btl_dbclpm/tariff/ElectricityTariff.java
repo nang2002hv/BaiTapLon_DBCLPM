@@ -1,8 +1,8 @@
 package com.example.btl_dbclpm.tariff;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import com.example.btl_dbclpm.model.AmountByStep;
+
+import java.util.*;
 
 public class ElectricityTariff {
     private final Map<Integer, Double> price = new LinkedHashMap<>();
@@ -20,25 +20,35 @@ public class ElectricityTariff {
         price.put(Integer.MAX_VALUE, 3151.0);
     }
 
-    public double calculatePrice(long consumption) {
-        double total = 0.0;
-        if(consumption < 0) {
-            return -1;
+    public List<AmountByStep> calculatePrice(long consumption) {
+        List<AmountByStep> result = new ArrayList<>();
+        int step = 1;
+        if(consumption <= 0) {
+            return result;
         }
         long remainingConsumption = consumption;
         int previousKey = 0;
         for (Map.Entry<Integer, Double> entry : price.entrySet()) {
             long units = Math.min(entry.getKey() - previousKey, remainingConsumption);
-            total += units * entry.getValue();
             remainingConsumption -= units;
+            AmountByStep amountByStep = AmountByStep.builder()
+                    .step(step)
+                    .price(entry.getValue())
+                    .consumption(units)
+                    .amount(units * entry.getValue())
+                    .build();
+            result.add(amountByStep);
+            step++;
             if (remainingConsumption == 0) {
                 break;
             }
             previousKey = entry.getKey();
         }
         if (remainingConsumption > 0) {
-            total += remainingConsumption * price.get(Integer.MAX_VALUE);
+            AmountByStep lastStep = result.get(result.size() - 1);
+            lastStep.setConsumption(lastStep.getConsumption() + remainingConsumption);
+            lastStep.setAmount(lastStep.getAmount() + remainingConsumption * lastStep.getPrice());
         }
-        return total;
+        return result;
     }
 }
