@@ -20,7 +20,6 @@ public class Payment {
     private long id;
     private String paymentMethod;
     private Date paymentDate;
-    private Double amount;
+    private double amount;
     private String paymentStatus;
-
 }

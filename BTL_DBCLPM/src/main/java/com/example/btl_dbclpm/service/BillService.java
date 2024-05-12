@@ -1,6 +1,7 @@
 package com.example.btl_dbclpm.service;
 
 import com.example.btl_dbclpm.model.Bill;
+import com.example.btl_dbclpm.model.Payment;
 import com.example.btl_dbclpm.repository.BillRepository;
 import org.springframework.stereotype.Service;
 import com.example.btl_dbclpm.model.Meter;
@@ -64,7 +65,10 @@ public class BillService {
             bill.setDateUpdate(Date.valueOf(LocalDate.now()));
             bill.getReading().setStatus("WAITING_FOR_PAYMENT");
             bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
-            return billRepository.save(bill);
+            Payment payment = new Payment();
+            payment.setAmount(bill.getAmountAfterTax());
+            bill.setPayment(payment);
+            billRepository.save(bill);
         }
         return null;
     }
