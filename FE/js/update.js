@@ -10,23 +10,23 @@ var listMeterReading = [];
 var hasWhiteDataColor = false;
 var districtDataLoaded = false;
 
-// $('.confirm-and-save').prop('disabled', true);
-// $('.calculate').prop('disabled', true);
+$('.confirm-and-save').prop('disabled', true);
 
-// setInterval(function () {
-//   table.rows().every(function () {
-//     var dataColor = $(this.node()).attr('data-color');
-//     if (dataColor === 'white') {
-//       hasWhiteDataColor = true;
-//       return false;
-//     }
-//   });
+setInterval(function () {
+  table.rows().every(function () {
+    var inputField = $(this.node()).find('input[type="text"]')
+    if (!inputField.prop('disabled')) { // Kiểm tra xem input có disabled không
+      hasDisabledInput = true; // Nếu có input bị tắt, gán biến hasDisabledInput thành true
+      return false; // Dừng lặp
+    }
+  });
 
-//   if (hasWhiteDataColor) {
-//     $('.confirm-and-save').prop('disabled', false);
-//     $('.calculate').prop('disabled', false);
-//   }
-// }, 500);
+  if (hasDisabledInput) {
+    $('.confirm-and-save').prop('disabled', false);
+  } else {
+    $('.confirm-and-save').prop('disabled', true);
+  }
+}, 500);
 
 document.addEventListener('DOMContentLoaded', function () {
   var employee = localStorage.getItem('employee'); // Lấy dữ liệu từ localStorage
@@ -118,7 +118,6 @@ document.querySelector('.district').addEventListener('click', function () {
   var districtList = getListDistrictByNameCity(nameCitys);
   var districtSelect = document.querySelector('.district');
 
-  // Kiểm tra xem dữ liệu đã được tải hay chưa
   if (!districtDataLoaded && nameCitys !== "Vui lòng chọn thành phố") {
     districtSelect.disabled = false;
     districtSelect.innerHTML = "";
@@ -224,17 +223,25 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
             item.meter.meterCode,
             item.meter.customer.fullName,
             item.meter.meterType,
-            item.previousReading, // Lấy giá trị đọc trước đó hoặc hiển thị 'N/A' nếu không tồn tại
-            // currentReading, // Lấy giá trị đọc hiện tại hoặc hiển thị 'N/A' nếu không tồn tại
+            item.previousReading,
+             item.meter.timeUpdate,
             inputField,
             '<button id="btn-' + item.meter.id + '" class="btn btn-primary d-block mx-auto mb-4" onclick="update(\'' + item.meter.id + '\')">Cập nhật</button>'
             
           ]).draw().node();
           $(rowNode).attr('id', 'id-' + item.meter.id);
+          
+          if(item.status === 'WAITING_FOR_CALCULATION' || item.status === "WAITING_FOR_PAYMENT"){
+            $(rowNode).addClass('row-blue');
+          }
+          if (!$(rowNode).find('input').prop('disabled')) {
+            $('#btn-' + item.meter.id).prop('disabled', true);
+          }
         });
+       
 
       })
-
+      
       .catch(error => {
         console.error('Đã xảy ra lỗi:', error);
       });
@@ -263,6 +270,11 @@ function update(rowId){
   }
   inputElement.value = '';
   console.log(listMeterReading)
+  $('#btn-' + rowId).prop('disabled', true);
+  $('#id-' + rowId).removeClass('row-blue');
+  $('#id-' + rowId).addClass('row-white');
+  hasWhiteDataColor = false;
+  $('.confirm-and-save').prop('disabled', false);
 }
 
 
@@ -287,6 +299,8 @@ function sortRow() {
     $('#dataTable').children('tbody').append(row);
   });
 }
+
+
 
 document.querySelector('.confirm-and-save').addEventListener('click', function () {
   var table = $('#dataTable').DataTable();
@@ -328,41 +342,21 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
         body: JSON.stringify(meterreading)
       })
         .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Bad request');
+          if (!response.ok) {
+            throw new Error('Failed to save bill');
+          }
+          else {
+            
+            table.clear().draw();
+            listMeterReading = [];
+            listMeterReadingAll = []
+            hasWhiteDataColor = false;
+           
           }
         })
-        .then(data => {
-          var currentReadingValue = data.currentReading;
-          var inputField = '<input type="text" id="input-' + meterreading.meter.id + '" value="' + currentReadingValue + '" disabled>';
 
-          if (data.currentReading === 0) {
-            // Nếu currentReading bằng 0, disable input và không set giá trị
-            inputField = '<input type="text" id="input-' + meterreading.meter.id + '">';
-          }
-          table.row('#id-' + meterreading.meter.id).data([
-            data.meter.meterCode,
-            data.meter.customer.fullName,
-            data.meter.meterType,
-            data.previousReading, // Lấy giá trị đọc trước đó hoặc hiển thị 'N/A' nếu không tồn tại
-            // currentReading, // Lấy giá trị đọc hiện tại hoặc hiển thị 'N/A' nếu không tồn tại
-            inputField,
-            '<button id="btn-' + meterreading.meter.id + '" class="btn btn-primary d-block mx-auto mb-4" onclick="update(\'' + meterreading.meter.id + '\')">Cập nhật</button>'
-          ]).draw();
-
-          listMeterReading[index] = data;
-          // alert("lưu thành công")
-        })
-        .catch(error => {
-          console.log(error)
-          // Cập nhật màu nền của hàng trong DataTables
-          var rowNode = table.row('#id-' + meterreading.meter.id).node();
-          $(rowNode).css('background-color', 'red');
-        });
     })
-
+    alert("cập nhật số điện thành công")
   }
 });
 
@@ -375,9 +369,14 @@ function isValidInput(value) {
     alert("Không được nhập kí tự đặc biết")
     return false;
   }
+  
   // Kiểm tra xem giá trị có phải là số không âm không
   if (parseFloat(value) < 0) {
     alert("Không được nhập số âm")
+    return false;
+  }
+  if(value.length > 17){
+    alert("Không được nhập số lớn hơn 17 chữ số")
     return false;
   }
   // Kiểm tra xem giá trị có chứa ký tự đặc biệt không
