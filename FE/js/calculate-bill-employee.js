@@ -218,7 +218,7 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
               var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
               var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
               var amountAfterTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountAfterTax;
-              var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Chờ tính toán' : 'Đã tính toán';
+              var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Chờ tính toán' : 'Đã lưu';
               var dateUpdate = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.dateUpdate;
 
               var rowNode = table.row.add([
@@ -317,7 +317,7 @@ document.querySelector('.calculate').addEventListener('click', function () {
             amountTax,
             amountAfterTax,
             "",
-            "Chờ tính toán"
+            "Đã tính toán"
           ]).draw();
           $('#id-' + data.id).css('background-color', 'white');
           $('#id-' + data.id).attr('data-color', 'white');
@@ -385,7 +385,7 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
             var amountBeforeTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountBeforeTax;
             var amountTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountTax;
             var amountAfterTax = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.amountAfterTax;
-            var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Chờ tính toán' : 'Đã tính toán';
+            var status = data.reading.status === 'WAITING_FOR_CALCULATION' ? 'Đã tính toán' : 'Đã lưu';
             var dateUpdate = data.reading.status === 'WAITING_FOR_CALCULATION' ? '' : data.dateUpdate;
             
             table.row('#id-' + data.id).data([

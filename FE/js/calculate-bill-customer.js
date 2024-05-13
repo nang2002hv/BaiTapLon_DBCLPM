@@ -1,8 +1,16 @@
-document.querySelector('form').addEventListener('submit', function(event) {
+document.querySelector('#calculateForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     let previousReading = document.querySelector('#previous').value;
     let currentReading = document.querySelector('#current').value;
+
+    if (previousReading === '') {
+        previousReading = -1
+    }
+    if (currentReading === '') {
+        currentReading = -1
+    }
+
 
     let meterReading = {
         previousReading: previousReading,
@@ -13,6 +21,8 @@ document.querySelector('form').addEventListener('submit', function(event) {
         reading: meterReading
     };
 
+    console.log(bill);
+
     fetch('http://localhost:8080/api/bills/calculate', {
         method: 'POST',
         headers: {
@@ -22,14 +32,26 @@ document.querySelector('form').addEventListener('submit', function(event) {
     })
     .then( response => {
         if (!response.ok) {
+            document.querySelector('#dataTable tbody').innerHTML = '';
+            document.querySelector('#previous').value = '';
+            document.querySelector('#current').value = '';
+            document.querySelector('#consumed').textContent = '';
+            document.querySelector('#total').textContent = '';
+            document.querySelector('#totalTax').textContent = '';
+            document.querySelector('#totalWithTax').textContent = '';
             throw new Error('Vui lòng nhập số điện hợp lệ!');
         }
         return response.json();
     }
     )
     .then(data => {
+        console.log(data);
         document.querySelector('#previous').value = '';
         document.querySelector('#current').value = '';
+        document.querySelector('#consumed').textContent = '';
+        document.querySelector('#total').textContent = '';
+        document.querySelector('#totalTax').textContent = '';
+        document.querySelector('#totalWithTax').textContent = '';
         
         let tableBody = document.querySelector('#dataTable tbody');
         tableBody.innerHTML = '';
@@ -55,11 +77,12 @@ document.querySelector('form').addEventListener('submit', function(event) {
 
             tableBody.appendChild(row);
 
-            document.querySelector('#consumed').textContent = data.consumption;
-            document.querySelector('#total').textContent = data.amountBeforeTax;
-            document.querySelector('#totalTax').textContent = data.amountTax;
-            document.querySelector('#totalWithTax').textContent = data.amountAfterTax;
         }
+
+        document.querySelector('#consumed').textContent = data.consumption;
+        document.querySelector('#total').textContent = data.amountBeforeTax;
+        document.querySelector('#totalTax').textContent = data.amountTax;
+        document.querySelector('#totalWithTax').textContent = data.amountAfterTax;
     })
     .catch((error) => {
         alert(error.message)

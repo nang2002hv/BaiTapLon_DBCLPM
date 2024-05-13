@@ -75,14 +75,14 @@ public class MeterReadingService {
                 } else {
                     // nếu tháng không không trùng nghĩa là tháng này chưa nhập. Tạo một meterReading mới và gán previous = currnt ở meterReading tháng trước.
                     meterReading.setPreviousReading(meterList.get(i).getMeterReadings().get(meterList.get(i).getMeterReadings().size()-1).getCurrentReading());
-                    meterReading.setCurrentReading(0.0);
+                    meterReading.setCurrentReading(0);
                     meterReading.setStatus(StatusEnum.WAITING_FOR_INPUT.toString());
                     meterReading.setMeter(meterList.get(i));
                 }
 
             } else {
-                meterReading.setCurrentReading(0.0);
-                meterReading.setPreviousReading(0.0);
+                meterReading.setCurrentReading(0);
+                meterReading.setPreviousReading(0);
                 meterReading.setStatus(StatusEnum.WAITING_FOR_INPUT.toString());
                 meterReading.setMeter(meterList.get(i));
             }

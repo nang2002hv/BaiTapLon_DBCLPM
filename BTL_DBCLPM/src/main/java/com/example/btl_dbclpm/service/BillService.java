@@ -51,6 +51,9 @@ public class BillService {
 
     private long calculateAmountBeforeTax(Bill bill) {
         long consumption = calculateConsumption(bill);
+        if(consumption == 0) {
+            return 0;
+        }
         List<AmountByStep> resultList = electricityTariff.calculatePrice(consumption);
         double result = 0;
         for (AmountByStep amountByStep : resultList) {
@@ -60,7 +63,7 @@ public class BillService {
     }
 
     private long calculateConsumption(Bill bill) {
-        return bill.getReading() != null ? (long) (bill.getReading().getCurrentReading() - bill.getReading().getPreviousReading()) : 0;
+        return bill.getReading() != null ? (bill.getReading().getCurrentReading() - bill.getReading().getPreviousReading()) : -1;
     }
 
     private long calculateAmountTax(Bill bill) {
@@ -72,7 +75,13 @@ public class BillService {
     }
 
     private boolean checkBillValid(Bill bill) {
-        return bill.getConsumption() > 0 && bill.getAmountBeforeTax() > 0 && bill.getAmountTax() > 0 && bill.getAmountAfterTax() >= 0 && bill.getAmountAfterTax() == bill.getAmountBeforeTax() + bill.getAmountTax();
+        return bill.getReading().getPreviousReading() >= 0
+                && bill.getReading().getCurrentReading() >= 0
+                && bill.getConsumption() >= 0
+                && bill.getAmountBeforeTax() >= 0
+                && bill.getAmountTax() >= 0
+                && bill.getAmountAfterTax() >= 0
+                && bill.getAmountAfterTax() == bill.getAmountBeforeTax() + bill.getAmountTax();
     }
 
     public Bill saveBill(Bill bill) {
@@ -80,13 +89,15 @@ public class BillService {
             bill.setDateUpdate(Date.valueOf(LocalDate.now()));
             bill.getReading().setStatus("WAITING_FOR_PAYMENT");
             bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
-            if(bill.getPayment() == null) {
-                Payment payment = new Payment();
-                payment.setAmount(bill.getAmountAfterTax());
-                bill.setPayment(payment);
-            }
-            else {
-                bill.getPayment().setAmount(bill.getAmountAfterTax());
+            if(bill.getConsumption() == 0) {
+                if(bill.getPayment() == null) {
+                    Payment payment = new Payment();
+                    payment.setAmount(bill.getAmountAfterTax());
+                    bill.setPayment(payment);
+                }
+                else {
+                    bill.getPayment().setAmount(bill.getAmountAfterTax());
+                }
             }
             for (AmountByStep amountByStep : bill.getAmountByStep()) {
                 List<AmountByStep> amountByStepList = amountByStepRepository.findByBillIdAndStep(bill.getId(), amountByStep.getStep());

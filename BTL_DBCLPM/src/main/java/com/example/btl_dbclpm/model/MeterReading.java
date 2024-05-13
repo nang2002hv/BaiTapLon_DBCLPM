@@ -13,8 +13,8 @@ public class MeterReading {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id = 0;
-    private Double previousReading = 0.0;
-    private Double currentReading = 0.0;
+    private long previousReading = -1;
+    private long currentReading = -1;
     private String status ="WAITING_FOR_INPUT";
     @ManyToOne
     @JoinColumn(name = "meter_id")

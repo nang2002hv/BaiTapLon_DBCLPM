@@ -26,15 +26,15 @@ public class BillRepositoryTest {
     public void testFindAll_StandardCase_ReturnListBill() {
         Bill bill1 = new Bill();
         MeterReading meterReading1 = new MeterReading();
-        meterReading1.setCurrentReading(100.0);
-        meterReading1.setPreviousReading(0.0);
+        meterReading1.setCurrentReading(100);
+        meterReading1.setPreviousReading(0);
         bill1.setReading(meterReading1);
         billRepository.save(bill1);
 
         Bill bill2 = new Bill();
         MeterReading meterReading2 = new MeterReading();
-        meterReading2.setCurrentReading(200.0);
-        meterReading2.setPreviousReading(100.0);
+        meterReading2.setCurrentReading(200);
+        meterReading2.setPreviousReading(100);
         bill2.setReading(meterReading2);
         billRepository.save(bill2);
 

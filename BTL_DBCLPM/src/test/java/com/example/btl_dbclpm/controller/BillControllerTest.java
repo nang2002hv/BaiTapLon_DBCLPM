@@ -40,8 +40,8 @@ public class BillControllerTest {
     @Test
     public void testCalculateBill_StandardCase1_ReturnBill() throws Exception {
         MeterReading meterReading = new MeterReading();
-        meterReading.setPreviousReading(0.0);
-        meterReading.setCurrentReading(50.0);
+        meterReading.setPreviousReading(0);
+        meterReading.setCurrentReading(50);
         Bill bill = new Bill();
         bill.setReading(meterReading);
         Bill billAfterCalculate = new Bill();
@@ -66,8 +66,8 @@ public class BillControllerTest {
     @Test
     public void testCalculateBill_StandardCase2_MeterReadingNotValid_ReturnBadRequest() throws Exception {
         MeterReading meterReading = new MeterReading();
-        meterReading.setPreviousReading(50.0);
-        meterReading.setCurrentReading(0.0);
+        meterReading.setPreviousReading(50);
+        meterReading.setCurrentReading(0);
         Bill bill = new Bill();
         bill.setReading(meterReading);
         when(billService.calculateBill(bill)).thenReturn(null);
@@ -124,8 +124,8 @@ public class BillControllerTest {
     public void testSaveBill_StandardCase_ReturnBillSaved() throws Exception {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
-        meterReading.setPreviousReading(0.0);
-        meterReading.setCurrentReading(50.0);
+        meterReading.setPreviousReading(0);
+        meterReading.setCurrentReading(50);
         meterReading.setStatus("WAITING_FOR_CALCULATION");
         bill.setReading(meterReading);
         bill.setConsumption(50);
@@ -135,8 +135,8 @@ public class BillControllerTest {
 
         Bill billAfterSave = new Bill();
         meterReading = new MeterReading();
-        meterReading.setPreviousReading(0.0);
-        meterReading.setCurrentReading(50.0);
+        meterReading.setPreviousReading(0);
+        meterReading.setCurrentReading(50);
         meterReading.setStatus("WAITING_FOR_PAYMENT");
         billAfterSave.setReading(meterReading);
         billAfterSave.setConsumption(50);
@@ -168,8 +168,8 @@ public class BillControllerTest {
     public void testSaveBill_StandardCase_SaveBillNotValid_ReturnBadRequest() throws Exception {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
-        meterReading.setCurrentReading(0.0);
-        meterReading.setPreviousReading(100.0);
+        meterReading.setCurrentReading(0);
+        meterReading.setPreviousReading(100);
         bill.setReading(meterReading);
         bill.setConsumption(100);
         bill.setAmountBeforeTax(-1);
