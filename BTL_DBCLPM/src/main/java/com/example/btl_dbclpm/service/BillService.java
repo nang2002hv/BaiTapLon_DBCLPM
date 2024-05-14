@@ -99,8 +99,11 @@ public class BillService {
                     bill.getPayment().setAmount(bill.getAmountAfterTax());
                 }
             }
+
+            Bill savedBill = billRepository.save(bill);
+
             for (AmountByStep amountByStep : bill.getAmountByStep()) {
-                List<AmountByStep> amountByStepList = amountByStepRepository.findByBillIdAndStep(bill.getId(), amountByStep.getStep());
+                List<AmountByStep> amountByStepList = amountByStepRepository.findByBillIdAndStep(savedBill.getId(), amountByStep.getStep());
                 if(!amountByStepList.isEmpty()) {
                     amountByStepRepository.deleteAll(amountByStepList);
                 }
@@ -108,7 +111,8 @@ public class BillService {
                     amountByStep.setBill(bill);
                 }
             }
-            return billRepository.save(bill);
+
+            return savedBill;
         }
         return null;
     }

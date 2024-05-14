@@ -1,6 +1,7 @@
 package com.example.btl_dbclpm.service;
 
 import com.example.btl_dbclpm.model.*;
+import com.example.btl_dbclpm.repository.AmountByStepRepository;
 import com.example.btl_dbclpm.repository.BillRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class BillServiceTest {
 
     @Mock
     private BillRepository billRepository;
+
+    @Mock
+    private AmountByStepRepository amountByStepRepository;
 
     @Test
     public void testGetBillsByMeter_StandardCase1_ReturnLatestBillOfMeter() {
@@ -275,7 +280,7 @@ public class BillServiceTest {
     }
 
     @Test
-    public void testSaveBill_StandardCase1_ReturnBillSaved() {
+    public void testSaveBill_StandardCase1_ReturnBillSaved_PaymentNotExist() {
         Bill bill = new Bill();
         MeterReading meterReading = new MeterReading();
         meterReading.setPreviousReading(0);
@@ -286,14 +291,80 @@ public class BillServiceTest {
         bill.setAmountBeforeTax(90300);
         bill.setAmountTax(7224);
         bill.setAmountAfterTax(97524);
+        ArrayList<AmountByStep> amountBySteps = new ArrayList<>();
+        AmountByStep amountByStep = AmountByStep.builder().step(1).price(1806).consumption(50).amount(90300).build();
+        amountBySteps.add(amountByStep);
+        bill.setAmountByStep(amountBySteps);
 
-        Mockito.when(billRepository.save(bill)).thenReturn(bill);
+        Bill billSaved = new Bill();
+        meterReading.setStatus("WAITING_FOR_PAYMENT");
+        billSaved.setId(1);
+        billSaved.setReading(meterReading);
+        billSaved.setConsumption(50);
+        billSaved.setAmountBeforeTax(90300);
+        billSaved.setAmountTax(7224);
+        billSaved.setAmountAfterTax(97524);
+        billSaved.setAmountByStep(amountBySteps);
+        Payment payment = new Payment();
+        payment.setAmount(97524);
+        billSaved.setPayment(payment);
+
+        Mockito.when(amountByStepRepository.findByBillIdAndStep(billSaved.getId(), 1)).thenReturn(amountBySteps);
+        Mockito.when(billRepository.save(bill)).thenReturn(billSaved);
 
         Bill result = billService.saveBill(bill);
 
         assertNotNull(result);
-        assertEquals("WAITING_FOR_PAYMENT", result.getReading().getStatus());
-        assertTrue(result.getBillCode().matches("^[a-fA-F0-9]{32}$"));
+        assertEquals(billSaved.getReading().getStatus(), result.getReading().getStatus());
+        assertNotNull(result.getPayment());
+        assertEquals(97524, result.getPayment().getAmount());
+        assertEquals(bill, result.getAmountByStep().get(0).getBill());
+    }
+
+    @Test
+    public void testSaveBill_StandardCase2_ReturnBillSaved_PaymentExist() {
+        Bill bill = new Bill();
+        MeterReading meterReading = new MeterReading();
+        meterReading.setPreviousReading(0);
+        meterReading.setCurrentReading(50);
+        meterReading.setStatus("WAITING_FOR_CALCULATION");
+        bill.setReading(meterReading);
+        bill.setConsumption(50);
+        bill.setAmountBeforeTax(90300);
+        bill.setAmountTax(7224);
+        bill.setAmountAfterTax(97524);
+        Payment payment = new Payment();
+        payment.setId(1);
+        payment.setAmount(97524);
+        bill.setPayment(payment);
+        ArrayList<AmountByStep> amountBySteps = new ArrayList<>();
+        AmountByStep amountByStep = AmountByStep.builder().step(1).price(1806).consumption(50).amount(90300).build();
+        amountBySteps.add(amountByStep);
+        bill.setAmountByStep(amountBySteps);
+
+        Bill billSaved = new Bill();
+        meterReading.setStatus("WAITING_FOR_PAYMENT");
+        billSaved.setId(1);
+        billSaved.setReading(meterReading);
+        billSaved.setConsumption(50);
+        billSaved.setAmountBeforeTax(90300);
+        billSaved.setAmountTax(7224);
+        billSaved.setAmountAfterTax(97524);
+        billSaved.setAmountByStep(amountBySteps);
+        billSaved.setPayment(payment);
+
+        Mockito.when(amountByStepRepository.findByBillIdAndStep(billSaved.getId(), 1)).thenReturn(amountBySteps);
+        Mockito.when(billRepository.save(bill)).thenReturn(billSaved);
+
+        Bill result = billService.saveBill(bill);
+
+        assertNotNull(result);
+        assertEquals(billSaved.getReading().getStatus(), result.getReading().getStatus());
+        assertEquals(billSaved.getPayment().getId(), result.getPayment().getId());
+        assertEquals(bill.getAmountAfterTax(), result.getPayment().getAmount());
+        assertNotNull(result.getPayment());
+        assertEquals(97524, result.getPayment().getAmount());
+        assertEquals(bill, result.getAmountByStep().get(0).getBill());
     }
 
     @Test
