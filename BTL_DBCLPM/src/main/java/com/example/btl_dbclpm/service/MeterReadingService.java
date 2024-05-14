@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +92,21 @@ public class MeterReadingService {
         }
 
         return meterReadings;
+    }
+
+    public String isValidInput(String value) {
+        if (value.length() > 17) {
+            return "Không được nhập số lớn hơn 17 chữ số";
+        }
+        try {
+            if (Double.parseDouble(value) < 0) {
+                return "Không được nhập số âm";
+            }
+        } catch (NumberFormatException e) {
+            if (Pattern.compile("[^0-9.]").matcher(value).find()) {
+                return "Không nhập chữ cái hoặc kí tự đặc biệt";
+            }
+        }
+        return "pass";
     }
 }

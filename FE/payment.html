@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="flash_icon.png" type="image/x-icon">
+    <title>Tính tiền điện</title>
+
+    <!-- Custom fonts for this template -->
+    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+          rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/sb-admin-2.css" rel="stylesheet">
+
+    <!-- Custom styles for this page -->
+    <link href="vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+</head>
+
+<body id="page-top" onload="fetchPaymentDetails()">
+
+<!-- Page Wrapper -->
+<div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+        <!-- Sidebar - Brand -->
+        <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.html">
+            <div class="sidebar-brand-icon rotate-n-15">
+                <i class="fas fa-laugh-wink"></i>
+            </div>
+            <div class="sidebar-brand-text mx-3">Electricity</div>
+        </a>
+
+           <!-- Divider -->
+           <hr class="sidebar-divider my-0">
+
+           <!-- Nav Item - Dashboard -->
+           <li class="nav-item active">
+               <a class="nav-link" href="payment.html" style="background: rgba(0, 0, 0, 0.277);">
+                   <i class="fas fa-fw fa-tachometer-alt"></i>
+                   <span>Đóng tiền điện</span></a>
+           </li>
+
+           <hr class="sidebar-divider my-0">
+
+           <!-- Nav Item - Dashboard -->
+           <li class="nav-item active">
+               <a class="nav-link" href="calculate-bill-customer.html" >
+                   <i class="fas fa-fw fa-tachometer-alt"></i>
+                   <span>Tính tiền điện</span>
+               </a>
+           </li>
+
+           <hr class="sidebar-divider my-0">
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="paymentDetails" class="container-fluid mt-4">
+        <!-- Payment Details will be loaded here dynamically -->
+    </div>
+    <!-- End of Content Wrapper -->
+
+</div>
+<!-- End of Page Wrapper -->
+
+<!-- Scroll to Top Button-->
+<a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+</a>
+
+<script src="vendor/jquery/jquery.min.js"></script>
+<script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+
+<!-- Custom scripts for all pages-->
+<script src="js/sb-admin-2.min.js"></script>
+
+<!-- Page level plugins -->
+<script src="vendor/datatables/jquery.dataTables.min.js"></script>
+<script src="vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const user = JSON.parse(localStorage.getItem('employee')) || JSON.parse(localStorage.getItem('customer'));
+        if (user && user.authorization === 'employee') {
+            document.querySelector('.payment-item').style.display = 'none';
+        }
+    });
+    async function fetchPaymentDetails() {
+        const user = JSON.parse(localStorage.getItem('customer'));
+        const url = 'http://localhost:8080/api/payments/get-payment';
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: user.id })
+        });
+        if (response.ok) {
+            const data = await response.json();
+            let paymentDetailsHTML = `
+            <h3>Chi tiết thanh toán</h3>
+            <p>Xin chào, ${user.fullName}</p>
+            <p>Phương thức thanh toán: ${data.paymentMethod}</p>
+            <p>Ngày thanh toán: ${data.paymentDate}</p>
+            <p id="paymentAmount">Số tiền: ${data.amount} VND</p>
+            <p>Tình trạng thanh toán: ${data.paymentStatus}</p>
+        `;
+            if (data.paymentStatus !== 'Đã thanh toán') {
+                paymentDetailsHTML += '<button id="payButton" class="btn btn-primary mt-3">Thanh toán</button>';
+            }
+            document.getElementById('paymentDetails').innerHTML = paymentDetailsHTML;
+
+            if (data.paymentStatus !== 'Đã thanh toán') {
+                document.getElementById('payButton').addEventListener('click', function() {
+                    const amountText = document.getElementById('paymentAmount').textContent;
+                    const amount = amountText.match(/\d+/)[0];
+                    const bankCode = 'NCB';
+                    const orderInfo = 'Payment for order 12345';
+                    const language = 'vn';
+                    const customerName = 'Nguyễn Văn A';
+
+                    fetch(`http://localhost:8080/api/payments/create-payment?amount=${amount}&bankCode=${bankCode}&orderInfo=${orderInfo}&language=${language}&customerName=${encodeURIComponent(customerName)}&paymentId=${data.id}`)
+                        .then(response => response.text())
+                        .then(url => {
+                            window.location.href = url;
+                        })
+                        .catch(error => console.error('Error:', error));
+                });
+            }
+        } else {
+            document.getElementById('paymentDetails').innerHTML = 'Failed to fetch data.';
+        }
+    }
+</script>
+
+</body>
+</html>

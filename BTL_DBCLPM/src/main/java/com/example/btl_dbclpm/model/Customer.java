@@ -16,7 +16,4 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Customer extends User{
     private String citizenId;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "contract_id")
-    private Contract contract;
 }

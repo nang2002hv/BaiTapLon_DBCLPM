@@ -89,7 +89,7 @@ public class BillService {
             bill.setDateUpdate(Date.valueOf(LocalDate.now()));
             bill.getReading().setStatus("WAITING_FOR_PAYMENT");
             bill.setBillCode(createBillID(bill.getConsumption(), bill.getAmountBeforeTax(), bill.getAmountTax(), bill.getAmountAfterTax()));
-            if(bill.getConsumption() == 0) {
+            if(bill.getConsumption() != 0) {
                 if(bill.getPayment() == null) {
                     Payment payment = new Payment();
                     payment.setAmount(bill.getAmountAfterTax());

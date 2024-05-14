@@ -364,12 +364,12 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
 
 async function isValidInput(value) {
   try {
-    let response = await fetch('http://localhost:8080/api/check/validate', {
+    let response = await fetch('http://localhost:8080/api/meter-reading/validate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: value
+      body: value.trim()
     });
     let data = await response.text();  
     if (response.ok && data === "pass") {
