@@ -30,7 +30,8 @@ public class MeterReadingController {
     }
 
     @PostMapping("/filter")
-    public List<MeterReading> filterByArea(@RequestBody Area area) {
-        return meterReadingService.filterByArea(area);
+    public ResponseEntity<List<MeterReading>> filterByArea(@RequestBody Area area) {
+        List<MeterReading> meterReading = meterReadingService.filterByArea(area);
+        return meterReading != null ? ResponseEntity.ok(meterReading) : ResponseEntity.badRequest().build();
     }
 }

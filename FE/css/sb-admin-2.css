@@ -69,9 +69,18 @@ body {
   text-align: left;
   background-color: #fff;
 }
+.row-blue {
+  background-color: #008000;
+  color: white;
+}
 
 [tabindex="-1"]:focus:not(:focus-visible) {
   outline: 0 !important;
+}
+
+.confirm-and-save:disabled {
+  background-color: #cccccc;
+  border-color: #cccccc;
 }
 
 hr {

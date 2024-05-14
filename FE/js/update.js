@@ -1,4 +1,4 @@
-// Call the dataTables jQuery plugin
+
 $(document).ready(function () {
   $('#dataTable').DataTable();
 });
@@ -7,17 +7,15 @@ var table = $('#dataTable').DataTable();
 var listArea = [];
 var listMeterReadingAll =[];
 var listMeterReading = [];
-var hasWhiteDataColor = false;
+var hasDisabledInput = false;
 var districtDataLoaded = false;
-
-$('.confirm-and-save').prop('disabled', true);
 
 setInterval(function () {
   table.rows().every(function () {
     var inputField = $(this.node()).find('input[type="text"]')
-    if (!inputField.prop('disabled')) { // Kiểm tra xem input có disabled không
-      hasDisabledInput = true; // Nếu có input bị tắt, gán biến hasDisabledInput thành true
-      return false; // Dừng lặp
+    if (!inputField.prop('disabled')) { 
+      hasDisabledInput = true; 
+      return false; 
     }
   });
 
@@ -28,8 +26,9 @@ setInterval(function () {
   }
 }, 500);
 
+
 document.addEventListener('DOMContentLoaded', function () {
-  var employee = localStorage.getItem('employee'); // Lấy dữ liệu từ localStorage
+  var employee = localStorage.getItem('employee'); 
   listMeter = [];
   fetch('http://localhost:8080/api/areas/filter', {
     method: 'POST',
@@ -192,7 +191,7 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
   var selectedArea = listArea.find(area => area.wardCommune === wardCommune && area.district === district && area.city === city);
   if (selectedArea) {
     // Tạo yêu cầu POST để lấy dữ liệu từ máy chủ
-    fetch('http://localhost:8080/api/metterreading/filter', {
+    fetch('http://localhost:8080/api/meter-reading/filter', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -213,7 +212,7 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
             listMeterReading.push(item);
           }
           var currentReadingValue = item.currentReading;
-          var inputField = '<input type="text" id="input-' + item.meter.id + '" value="' + currentReadingValue + '" disabled>';
+          var inputField = '<input type="text" id="input-' + item.meter.id + '" value="' + currentReadingValue + '" disabled style="background-color: green; border: none; color :white">';
         
           if (item.currentReading === 0) {
             // Nếu currentReading bằng 0, disable input và không set giá trị
@@ -232,8 +231,15 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
           $(rowNode).attr('id', 'id-' + item.meter.id);
           
           if(item.status === 'WAITING_FOR_CALCULATION' || item.status === "WAITING_FOR_PAYMENT"){
-            $(rowNode).addClass('row-blue');
+            rowNode.style.backgroundColor = 'green';
+            rowNode.style.color = 'white';
+            $(rowNode).attr('data-color', 'green');
+          } else {
+            rowNode.style.backgroundColor = 'white';
+            rowNode.style.color = 'black';
+            $(rowNode).attr('data-color', 'white');
           }
+          
           if (!$(rowNode).find('input').prop('disabled')) {
             $('#btn-' + item.meter.id).prop('disabled', true);
           }
@@ -241,43 +247,14 @@ document.querySelector('.filter-by-area').addEventListener('click', function () 
        
 
       })
-      
+      .then(() => {
+        sortRow();
+      })
       .catch(error => {
         console.error('Đã xảy ra lỗi:', error);
       });
   }
 });
-
-function update(rowId){
-  var table = $('#dataTable').DataTable();
-  var rowData = table.row('#id-' + rowId).data();
-  var meterCode = rowData[0];
-  var inputElement = document.getElementById('input-' + rowId);
-  
-  inputElement.removeAttribute('disabled');
-  var itemIndex = listMeterReading.findIndex(item => item.meter.meterCode === meterCode);
-  if (itemIndex === -1) {
-    // Nếu không tìm thấy, thêm phần tử mới vào listMeterReading
-    var newItem = listMeterReadingAll.find(item => item.meter.meterCode === meterCode);
-    if (newItem) {
-      listMeterReading.push(newItem);
-      console.log('New item added to listMeterReading:', newItem);
-    } else {
-      console.log('Meter code not found in listMeterReadingAll:', meterCode);
-    }
-  } else {
-    console.log('Item found in listMeterReading:', listMeterReading[itemIndex]);
-  }
-  inputElement.value = '';
-  console.log(listMeterReading)
-  $('#btn-' + rowId).prop('disabled', true);
-  $('#id-' + rowId).removeClass('row-blue');
-  $('#id-' + rowId).addClass('row-white');
-  hasWhiteDataColor = false;
-  $('.confirm-and-save').prop('disabled', false);
-}
-
-
 
 function sortRow() {
   var rows = $('#dataTable tbody tr').get();
@@ -301,40 +278,64 @@ function sortRow() {
 }
 
 
+function update(rowId){
+  var table = $('#dataTable').DataTable();
+  var rowData = table.row('#id-' + rowId).data();
+  var meterCode = rowData[0];
+  var inputElement = document.getElementById('input-' + rowId);
+  
+  inputElement.removeAttribute('disabled');
+  inputElement.style.border = '1px solid black';
+  inputElement.style.backgroundColor = 'white';
+  inputElement.style.color = 'black';
+  var itemIndex = listMeterReading.findIndex(item => item.meter.meterCode === meterCode);
+  if (itemIndex === -1) {
+    // Nếu không tìm thấy, thêm phần tử mới vào listMeterReading
+    var newItem = listMeterReadingAll.find(item => item.meter.meterCode === meterCode);
+    if (newItem) {
+      listMeterReading.push(newItem);
+      console.log('New item added to listMeterReading:', newItem);
+    } else {
+      console.log('Meter code not found in listMeterReadingAll:', meterCode);
+    }
+  } else {
+    console.log('Item found in listMeterReading:', listMeterReading[itemIndex]);
+  }
+  inputElement.value = '';
+  console.log(listMeterReading)
+  $('#btn-' + rowId).prop('disabled', true);
+  $('#id-' + rowId).removeClass('row-blue');
+  $('#id-' + rowId).addClass('row-white');
+  hasWhiteDataColor = false;
+}
+
+
+
 
 document.querySelector('.confirm-and-save').addEventListener('click', function () {
   var table = $('#dataTable').DataTable();
   var hasEmptyField = false;
-
-  table.rows().every(function () {
-    var row = this;
-    var rowCells = row.nodes().to$().find('input');
-    rowCells.each(function () {
-      var cellValue = $(this).val();
-      if (cellValue === '') {
-        alert("Không được bỏ trống ô nhập số điện")
-        $(row.node()).css('background-color', 'red');
-        hasEmptyField = true;
-      } else if (!isValidInput(cellValue)) {
-        $(row.node()).css('background-color', 'red');
-        $(this).val('');
-        hasEmptyField = true;
-      }
-    });
+  listMeterReading = listMeterReading.filter((meterreading, index) => {
+    var inputId = 'input-' + meterreading.meter.id; 
+    var inputElement = $('#' + inputId);
+    var inputValue = inputElement.val();
+    if (inputElement.prop('disabled') || !inputValue || !isValidInput(inputValue)) {
+      hasEmptyField = true;
+      return false; 
+    }
+    meterreading.currentReading = inputValue;
+    return true; 
   });
 
   if (!hasEmptyField) {
     console.log(listMeterReading)
-    listMeterReading.map((meterreading, index) => {
-      
-      // Lấy giá trị từ input dựa trên id
-      var inputId = 'input-' + meterreading.meter.id; // itemId là id của input
+    Promise.all(listMeterReading.map((meterreading, index) => {
+      var inputId = 'input-' + meterreading.meter.id;
       console.log(inputId)
       var inputValue = document.getElementById(inputId).value;
       console.log(inputValue)
-      // Gán giá trị vào biến
       meterreading.currentReading = inputValue;
-      return fetch('http://localhost:8080/api/metterreading/save', {
+      return fetch('http://localhost:8080/api/meter-reading/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -345,48 +346,44 @@ document.querySelector('.confirm-and-save').addEventListener('click', function (
           if (!response.ok) {
             throw new Error('Failed to save bill');
           }
-          else {
-            
-            table.clear().draw();
-            listMeterReading = [];
-            listMeterReadingAll = []
-            hasWhiteDataColor = false;
-           
-          }
         })
-
-    })
-    alert("cập nhật số điện thành công")
+    })).then(() => {
+      table.clear().draw();
+      listMeterReading = [];
+      listMeterReadingAll = []
+      hasWhiteDataColor = false;
+      alert("cập nhật số điện thành công")
+    }).catch(error => {
+      console.error('Error:', error);
+    });
   }
 });
 
 
 
 
-function isValidInput(value) {
-  // Kiểm tra xem giá trị có phải là số không âm không
-  if (!/^\d+(\.\d+)?$/.test(value)) {
-    alert("Không được nhập kí tự đặc biết")
+async function isValidInput(value) {
+  try {
+    let response = await fetch('http://localhost:8080/api/check/validate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: value
+    });
+    let data = await response.text();  
+    if (response.ok && data === "pass") {
+      return true;
+    } else {
+      alert(data);  
+      return false;
+    }
+  } catch (error) {
+    console.error('Có lỗi xảy ra:', error);
+    alert('Có lỗi xảy ra khi gửi yêu cầu đến server.');
     return false;
   }
-  
-  // Kiểm tra xem giá trị có phải là số không âm không
-  if (parseFloat(value) < 0) {
-    alert("Không được nhập số âm")
-    return false;
-  }
-  if(value.length > 17){
-    alert("Không được nhập số lớn hơn 17 chữ số")
-    return false;
-  }
-  // Kiểm tra xem giá trị có chứa ký tự đặc biệt không
-  if (/[^a-zA-Z0-9]/.test(value)) {
-    alert("Không nhập chữ cái")
-    return false;
-  }
-  return true;
 }
-
 
 
 
