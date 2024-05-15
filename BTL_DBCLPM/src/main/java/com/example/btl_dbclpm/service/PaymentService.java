@@ -96,7 +96,7 @@ public class PaymentService {
             }
             return hexString.toString();
         } catch (Exception e) {
-            return null; // Consider logging or handling the exception more gracefully
+            return null;
         }
     }
 

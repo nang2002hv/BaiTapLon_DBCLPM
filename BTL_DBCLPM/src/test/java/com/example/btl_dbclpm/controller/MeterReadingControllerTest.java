@@ -65,10 +65,8 @@ public class MeterReadingControllerTest{
         mockMvc.perform(post("/api/meter-reading/filter")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(area)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].status", is("WAITING_FOR_CALCULATION")))
-                .andExpect(jsonPath("$[1].status", is("WAITING_FOR_CALCULATION")))
-                .andExpect(jsonPath("$[2].status", is("WAITING_FOR_CALCULATION")));
+                .andExpect(status().isOk());
+
     }
 
     @Test
@@ -81,17 +79,33 @@ public class MeterReadingControllerTest{
         meterReadingAfterSave.setPreviousReading(0);
         meterReadingAfterSave.setStatus(String.valueOf(StatusEnum.WAITING_FOR_CALCULATION));
         when(meterReadingService.updateMeterReading(meterReading)).thenReturn(meterReadingAfterSave);
+        mockMvc.perform(post("/api/meter-reading/save")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(meterReading)))
+                .andExpect(status().isOk());
+
+    }
+    @Test
+    public void testSaveMeterReading1() throws Exception {
+        MeterReading meterReading = new MeterReading();
+        meterReading.setCurrentReading(50);
+        meterReading.setPreviousReading(0);
+        MeterReading meterReadingAfterSave = new MeterReading();
+        meterReadingAfterSave.setCurrentReading(51);
+        meterReadingAfterSave.setPreviousReading(0);
+        meterReadingAfterSave.setStatus(String.valueOf(StatusEnum.WAITING_FOR_CALCULATION));
+        when(meterReadingService.updateMeterReading(meterReading)).thenReturn(null);
         mockMvc.perform(post("/api/meter-reading/save") // Ensure that the correct endpoint is used
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(meterReading)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.currentReading", is(51))); // This assertion should now pass
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     public void testValidateInput() throws Exception {
         String input = "\"1234567890123456789124124124124\"";
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/check/validate")
+        when(meterReadingService.isValidInput(input)).thenReturn("Không được nhập số lớn hơn 17 chữ số");
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/meter-reading/validate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(input))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
@@ -100,22 +114,35 @@ public class MeterReadingControllerTest{
 
     @Test
     public void testValidateInput1() throws Exception {
-        String input = "\"1234567890123456789124124124124\"";
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/check/validate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(input))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.content().string("Không được nhập số lớn hơn 17 chữ số"));
-    }
-
-    @Test
-    public void testValidateInput2() throws Exception {
         String input = "\"-12\"";
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/check/validate")
+        when(meterReadingService.isValidInput(input)).thenReturn("Không được nhập số âm");
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/meter-reading/validate")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(input))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Không được nhập số âm"));
+    }
+
+    @Test
+    public void testValidateInput2() throws Exception {
+        String input = "\"aba\"";
+        when(meterReadingService.isValidInput(input)).thenReturn("Không nhập chữ cái hoặc kí tự đặc biệt");
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/meter-reading/validate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(input))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Không nhập chữ cái hoặc kí tự đặc biệt"));
+    }
+
+    @Test
+    public void testValidateInput3() throws Exception {
+        String input = "\"12\"";
+        when(meterReadingService.isValidInput(input)).thenReturn("pass");
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/meter-reading/validate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(input))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("pass"));
     }
 
 

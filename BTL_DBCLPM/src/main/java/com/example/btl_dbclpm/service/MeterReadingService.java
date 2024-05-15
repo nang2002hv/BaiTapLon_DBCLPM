@@ -50,6 +50,8 @@ public class MeterReadingService {
         return null;
     }
 
+
+
     public boolean checkValidate(MeterReading meterReading){
         return !StringUtils.isEmpty(meterReading.getCurrentReading() + "") && meterReading.getCurrentReading() >= 0 && meterReading.getCurrentReading() >= meterReading.getPreviousReading() && meterReading.getPreviousReading() >= 0;
     }

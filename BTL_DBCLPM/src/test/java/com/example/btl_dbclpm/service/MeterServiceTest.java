@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,37 +21,27 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MeterServiceTest {
-    @InjectMocks
-    private MeterService MeterService;
 
     @Mock
     private MeterRepository meterRepository;
 
-//    @Test
-//    public void testGetBillsByMeter_StandardCase1_ReturnLatestBillOfMeter() {
-//        Area area = new Area();
-//        area.setId(1L);
-//        area.setCity("Cần Thơ");
-//        area.setDistrict("Ô Môn");
-//        area.setWardCommune("Lê Bình");
-//
-//        List<Meter> meterList = Arrays.asList(
-//                Meter.builder()
-//                        .id(1L)
-//                        .meterCode("47828680")
-//                        .area(area)
-//                        .build(),
-//                Meter.builder()
-//                        .id(2L)
-//                        .meterCode("30464938")
-//                        .area(area)
-//                        .build()
-//        );
-//
-//        when(meterRepository.findByArea(area)).thenReturn(Arrays.asList(bill1, bill2));
-//
-//        Bill returnedBill = billService.getBillsByMeter(meter);
-//
-//        assertEquals(bill2, returnedBill);
-//    }
+    @InjectMocks
+    private MeterService meterService;
+
+    @Test
+    public void testFilterByArea() {
+        Area area = new Area();
+        area.setId(1L);
+        area.setCity("Cần Thơ");
+        area.setDistrict("Ô Môn");
+        area.setWardCommune("Lê Bình");
+        List<Meter> meterList = new ArrayList<>();
+        Meter meter = new Meter();
+        meter.setMeterCode("47828680");
+        meter.setArea(area);
+        meterList.add(meter);
+        when(meterRepository.findByArea(area)).thenReturn(meterList);
+        List<Meter> returnedMeters = meterService.filterByArea(area);
+        assertEquals(meterList, returnedMeters);
+    }
 }
